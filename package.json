@@ -1,0 +1,60 @@
+{
+  "name": "@ultimate/mcp-server",
+  "version": "1.0.0",
+  "description": "The Ultimate MCP Server - A comprehensive, production-ready Model Context Protocol server with advanced AI orchestration, debugging, and problem-solving capabilities",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "ultimate-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc && chmod +x dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "llm",
+    "orchestration",
+    "debugging"
+  ],
+  "author": "Ultimate MCP Team",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.15.0",
+    "openai": "^4.77.0",
+    "@anthropic-ai/sdk": "^0.38.0",
+    "@google/generative-ai": "^0.21.0",
+    "postgres": "^3.4.5",
+    "redis": "^4.7.0",
+    "zod": "^3.24.1",
+    "winston": "^3.17.0",
+    "p-queue": "^8.0.1",
+    "chalk": "^5.4.1",
+    "dotenv": "^16.5.0",
+    "axios": "^1.7.9"
+  },
+  "devDependencies": {
+    "@types/node": "^22.12.1",
+    "typescript": "^5.7.3",
+    "tsx": "^4.19.2",
+    "vitest": "^2.1.8",
+    "@vitest/coverage-v8": "^2.1.8",
+    "eslint": "^9.18.0",
+    "@typescript-eslint/eslint-plugin": "^8.20.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "prettier": "^3.4.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
