@@ -53,7 +53,9 @@ pnpm-lock.yaml
 
 # API Keys and Secrets - IMPORTANT!
 claude-config-ready.json
-.env*
+.env
+.env.*
+!.env.example
 *.key
 
 # Local test files
