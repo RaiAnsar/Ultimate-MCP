@@ -26,7 +26,42 @@ export function createCodebaseTools(orchestrator: AIOrchestrator): ToolDefinitio
     {
       name: "analyze_codebase",
       description: "Analyze entire codebases or document collections beyond typical context limits",
-      inputSchema: analyzeCodebaseSchema as any,
+      inputSchema: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description: "Starting directory path for analysis"
+          },
+          pattern: {
+            type: "string",
+            description: "Regex pattern for file matching (e.g., '.*\\.ts$' for TypeScript files)"
+          },
+          exclude: {
+            type: "string",
+            description: "Regex pattern for files to exclude"
+          },
+          query: {
+            type: "string",
+            description: "Analysis question or task"
+          },
+          model: {
+            type: "string",
+            description: "Model to use for analysis (default: auto-select)"
+          },
+          useThinking: {
+            type: "boolean",
+            description: "Enable deep thinking mode for complex analysis"
+          },
+          strategy: {
+            type: "string",
+            enum: ["direct", "chunked", "summarize-first"],
+            default: "direct",
+            description: "Analysis strategy"
+          }
+        },
+        required: ["path", "pattern", "query"]
+      },
       handler: async (args) => {
         const input = analyzeCodebaseSchema.parse(args);
         
@@ -113,12 +148,29 @@ export function createCodebaseTools(orchestrator: AIOrchestrator): ToolDefinitio
     {
       name: "find_in_codebase",
       description: "Search for specific patterns, functions, or implementations in a codebase",
-      inputSchema: z.object({
-        path: z.string().describe("Starting directory path"),
-        searchPattern: z.string().describe("What to search for (regex supported)"),
-        filePattern: z.string().optional().describe("File pattern to search in (e.g., '.*\\.py$')"),
-        contextLines: z.number().optional().default(3).describe("Number of context lines around matches"),
-      }) as any,
+      inputSchema: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description: "Starting directory path"
+          },
+          searchPattern: {
+            type: "string",
+            description: "What to search for (regex supported)"
+          },
+          filePattern: {
+            type: "string",
+            description: "File pattern to search in (e.g., '.*\\.py$')"
+          },
+          contextLines: {
+            type: "number",
+            default: 3,
+            description: "Number of context lines around matches"
+          }
+        },
+        required: ["path", "searchPattern"]
+      },
       handler: async (args) => {
         const input = args as any;
         
