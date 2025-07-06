@@ -2,7 +2,7 @@
 import { UltimateMCPServer } from "./core/server.js";
 import { config } from "dotenv";
 import { Logger } from "./utils/logger.js";
-import { OrchestrationEngine } from "./providers/orchestrator.js";
+import { AIOrchestrator } from "./providers/orchestrator.js";
 import { registerBuiltInTools } from "./tools/index.js";
 import { registerBuiltInResources } from "./resources/index.js";
 import { registerBuiltInPrompts } from "./prompts/index.js";
@@ -23,7 +23,7 @@ async function main() {
     );
 
     // Initialize orchestration engine
-    const orchestrator = new OrchestrationEngine();
+    const orchestrator = new AIOrchestrator();
 
     // Register built-in tools
     await registerBuiltInTools(server, orchestrator);

@@ -2,8 +2,8 @@ import { Logger } from "../utils/logger.js";
 import { 
   OrchestrationStrategy, 
   OrchestrationRequest, 
-  OrchestrationOptions,
-  AIProvider 
+  AIProvider,
+  Message 
 } from "../types/index.js";
 import { OpenRouterProvider } from "./openrouter.js";
 // import { AnthropicProvider } from "./anthropic.js"; // Disabled - using Claude directly
@@ -31,13 +31,13 @@ interface OrchestrationResult {
   };
 }
 
-export class OrchestrationEngine {
+export class AIOrchestrator {
   private providers: Map<string, AIProvider> = new Map();
   private logger: Logger;
   private queue: PQueue;
 
   constructor() {
-    this.logger = new Logger("OrchestrationEngine");
+    this.logger = new Logger("AIOrchestrator");
     this.queue = new PQueue({ concurrency: 5 });
     this.initializeProviders();
   }
@@ -347,36 +347,6 @@ ${initialResponses.map(r => `${r?.model}:\n${r?.response}`).join("\n\n---\n\n")}
     };
   }
 
-  private async callModel(
-    model: string,
-    prompt: string,
-    options?: OrchestrationOptions
-  ): Promise<ProviderResponse> {
-    const startTime = Date.now();
-    const [providerName, modelId] = this.parseModelId(model);
-    const provider = this.providers.get(providerName);
-
-    if (!provider) {
-      throw new Error(`Provider ${providerName} not available`);
-    }
-
-    try {
-      const response = await provider.complete(prompt, {
-        model: modelId,
-        temperature: options?.temperature,
-        maxTokens: 2000,
-      });
-
-      return {
-        model,
-        response,
-        duration: Date.now() - startTime,
-      };
-    } catch (error) {
-      this.logger.error(`Model ${model} failed:`, error);
-      throw error;
-    }
-  }
 
   private parseModelId(model: string): [string, string] {
     // Since we only have OpenRouter configured, route ALL models through it
@@ -482,5 +452,73 @@ ${initialResponses.map(r => `${r?.model}:\n${r?.response}`).join("\n\n---\n\n")}
     }
 
     return Math.min(score, 100);
+  }
+
+  public async callModel(
+    model: string,
+    prompt: string,
+    options?: {
+      temperature?: number;
+      useThinking?: boolean;
+      thinkingTokens?: string[];
+      context?: Message[];
+    }
+  ): Promise<ProviderResponse> {
+    const [providerName] = this.parseModelId(model);
+    const provider = this.providers.get(providerName);
+
+    if (!provider) {
+      throw new Error(`Provider ${providerName} not available`);
+    }
+
+    const startTime = Date.now();
+
+    try {
+      // Handle thinking mode
+      let actualModel = model;
+      let actualPrompt = prompt;
+
+      if (options?.useThinking) {
+        // Add thinking mode suffix if supported
+        const thinkingModels = this.getThinkingModels();
+        if (thinkingModels[model]) {
+          actualModel = thinkingModels[model];
+        } else {
+          // Add thinking tokens to prompt
+          const thinkingPrefix = options.thinkingTokens?.join(" ") || 
+            "Let me think through this step by step:\n\n";
+          actualPrompt = thinkingPrefix + prompt;
+        }
+      }
+
+      const response = options?.context
+        ? await provider.completeWithContext(options.context.concat([{ role: "user", content: actualPrompt }]), {
+            model: actualModel,
+            temperature: options?.temperature,
+          })
+        : await provider.complete(actualPrompt, {
+            model: actualModel,
+            temperature: options?.temperature,
+          });
+
+      return {
+        model: actualModel,
+        response,
+        duration: Date.now() - startTime,
+      };
+    } catch (error) {
+      this.logger.error(`Error calling model ${model}:`, error);
+      throw error;
+    }
+  }
+
+  private getThinkingModels(): Record<string, string> {
+    // Map of regular models to their thinking variants
+    return {
+      "openai/gpt-4o": "openai/gpt-4o|thinking",
+      "google/gemini-2.5-pro": "google/gemini-2.5-pro|thinking",
+      "anthropic/claude-3-opus-20240229": "anthropic/claude-3-opus-20240229|thinking",
+      // Add more as they become available
+    };
   }
 }

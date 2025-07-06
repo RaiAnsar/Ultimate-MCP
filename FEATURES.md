@@ -40,9 +40,10 @@ Interactive debugging session with step-by-step guidance.
 
 #### `ask`
 Direct questions to specific AI models.
-- Supports multiple providers (OpenRouter, Anthropic, OpenAI, Google)
+- Supports 100+ models through OpenRouter
 - Configurable temperature and parameters
 - Model-specific routing
+- Thinking mode support (NEW!)
 
 #### `orchestrate`
 Advanced multi-AI orchestration with 7 strategies:
@@ -63,6 +64,26 @@ Generate code with best practices.
 - Includes unit tests (optional)
 - Documentation generation
 - Style preferences
+
+### Codebase Analysis Tools (NEW!)
+
+#### `analyze_codebase`
+Analyze entire codebases beyond typical context limits.
+- Recursive file collection with regex patterns
+- Smart filtering (ignores binaries, node_modules, etc.)
+- Handles up to 100MB of code
+- Multiple analysis strategies:
+  - Direct: Analyze all files at once
+  - Chunked: Process in manageable chunks
+  - Summarize-first: Create summaries then analyze
+- Thinking mode support for deep analysis
+
+#### `find_in_codebase`
+Search for patterns across large codebases.
+- Regex pattern matching
+- File type filtering
+- Context lines around matches
+- Fast implementation search
 
 ### System Tools
 
@@ -126,13 +147,26 @@ Systematic problem-solving for complex challenges.
 - Trade-off analysis
 - Implementation roadmap
 
+## 🧠 Thinking Mode (NEW!)
+
+Enable deep reasoning across all AI models:
+- Add `useThinking: true` to any orchestration request
+- Automatic thinking model selection when available
+- Custom thinking tokens for enhanced reasoning
+- Works with all orchestration strategies
+- Ideal for complex problem solving
+
+Example:
+```typescript
+/ask orchestrate "Design a fault-tolerant distributed system" 
+  --options.useThinking true
+```
+
 ## 🔧 Configuration Options
 
 ### AI Providers
-- **OpenRouter**: Access to 100+ models
-- **Anthropic**: Claude models
-- **OpenAI**: GPT models
-- **Google**: Gemini models
+- **OpenRouter**: Access to 100+ models (primary)
+- **Note**: Anthropic/Claude disabled (you already have Claude!)
 
 ### Persistence
 - **PostgreSQL**: Conversation history

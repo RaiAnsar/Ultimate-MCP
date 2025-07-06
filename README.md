@@ -15,13 +15,29 @@
 - **Production Ready**: Rate limiting, health monitoring, structured logging, and comprehensive error handling
 - **Easy Setup**: One-click installation with Claude Desktop or Claude Code
 
-## 🚀 Quick Setup (1 Minute)
+## 🚀 Quick Setup (30 Seconds!)
 
-### Prerequisites
-- Node.js 20+ installed
-- [OpenRouter API key](https://openrouter.ai/keys) (get $5 free credit on signup)
+### Automatic Installation (NEW! 🎉)
 
-### Installation
+```bash
+# Clone and setup with one command:
+git clone https://github.com/RaiAnsar/Ultimate-MCP.git && cd Ultimate-MCP && ./setup.sh
+
+# Or on Windows:
+git clone https://github.com/RaiAnsar/Ultimate-MCP.git && cd Ultimate-MCP && setup.bat
+```
+
+The setup script will:
+- ✅ Check Node.js version
+- ✅ Install dependencies
+- ✅ Build the server
+- ✅ Create .env file
+- ✅ Add to Claude automatically
+- ✅ Provide next steps
+
+### Manual Installation
+
+If you prefer manual setup:
 
 ```bash
 # Clone the repository
@@ -69,6 +85,7 @@ Access and coordinate multiple AI models with sophisticated strategies:
 - **Specialist**: Route to the most appropriate model
 - **Hierarchical**: Lead model coordinates others
 - **Mixture**: Intelligent output combination
+- **Thinking Mode** (NEW!): Enable deep reasoning for complex problems
 
 ### 🛠️ Developer Tools
 - **Error Analysis**: Get detailed debugging help with root cause analysis
@@ -76,6 +93,8 @@ Access and coordinate multiple AI models with sophisticated strategies:
 - **Optimization**: Improve performance, memory usage, and readability
 - **Code Generation**: Generate production-ready code with tests
 - **Interactive Debugging**: Step-by-step problem solving sessions
+- **Codebase Analysis** (NEW!): Analyze entire codebases beyond context limits
+- **Pattern Search** (NEW!): Find implementations across large projects
 
 ### 📊 Available Models
 Through OpenRouter, access models from:
@@ -103,6 +122,24 @@ Through OpenRouter, access models from:
 ```typescript
 /ask orchestrate "Compare React vs Vue for a large enterprise application" 
   --strategy debate --models gpt-4,claude-3-opus,gemini-pro
+```
+
+### Analyze Entire Codebase (NEW!)
+```typescript
+/ask analyze_codebase --path ./src --pattern ".*\.ts$" 
+  --query "Find all API endpoints and their authentication methods"
+```
+
+### Enable Thinking Mode (NEW!)
+```typescript
+/ask orchestrate "Design a distributed cache system" 
+  --strategy specialist --options.useThinking true
+```
+
+### Search Across Files (NEW!)
+```typescript
+/ask find_in_codebase --path ./src --searchPattern "handleAuth|authenticate" 
+  --filePattern ".*\.(ts|js)$"
 ```
 
 ## 🔧 Advanced Configuration

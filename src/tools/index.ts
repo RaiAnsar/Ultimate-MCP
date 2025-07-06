@@ -1,14 +1,15 @@
 import { UltimateMCPServer } from "../core/server.js";
-import { OrchestrationEngine } from "../providers/orchestrator.js";
+import { AIOrchestrator } from "../providers/orchestrator.js";
 import { ToolDefinition } from "../types/index.js";
 import * as debugTools from "./debug-tools.js";
+import { createCodebaseTools } from "./codebase-tools.js";
 // import * as aiTools from "./ai-tools.js";
 // import * as codeTools from "./code-tools.js";
 // import * as systemTools from "./system-tools.js";
 
 export async function registerBuiltInTools(
   server: UltimateMCPServer,
-  orchestrator: OrchestrationEngine
+  orchestrator: AIOrchestrator
 ): Promise<void> {
   // Register debugging tools
   server.registerTool(debugTools.analyzeError);
@@ -65,6 +66,12 @@ export async function registerBuiltInTools(
             maxRounds: { type: "number" },
             temperature: { type: "number" },
             includeReasoning: { type: "boolean" },
+            useThinking: { type: "boolean", description: "Enable deep thinking mode" },
+            thinkingTokens: { 
+              type: "array", 
+              items: { type: "string" },
+              description: "Custom thinking tokens"
+            },
           },
         },
       },
@@ -130,7 +137,7 @@ function formatOrchestrationResult(result: any): string {
   return output;
 }
 
-async function registerCodeTools(server: UltimateMCPServer, orchestrator: OrchestrationEngine): Promise<void> {
+async function registerCodeTools(server: UltimateMCPServer, orchestrator: AIOrchestrator): Promise<void> {
   // Code generation tool
   const generateCode: ToolDefinition = {
     name: "generate_code",
@@ -194,6 +201,12 @@ async function registerCodeTools(server: UltimateMCPServer, orchestrator: Orches
   };
 
   server.registerTool(generateCode);
+
+  // Register codebase analysis tools
+  const codebaseTools = createCodebaseTools(orchestrator);
+  for (const tool of codebaseTools) {
+    server.registerTool(tool);
+  }
 }
 
 async function registerSystemTools(server: UltimateMCPServer): Promise<void> {

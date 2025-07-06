@@ -73,6 +73,9 @@ export interface OrchestrationOptions {
   requireConsensus?: boolean;
   evaluationCriteria?: string[];
   parallelism?: number;
+  useThinking?: boolean;
+  thinkingModel?: string;
+  thinkingTokens?: string[];
 }
 
 export interface ToolDefinition {
