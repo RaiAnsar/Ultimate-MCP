@@ -479,16 +479,14 @@ ${initialResponses.map(r => `${r?.model}:\n${r?.response}`).join("\n\n---\n\n")}
       let actualPrompt = prompt;
 
       if (options?.useThinking) {
-        // Add thinking mode suffix if supported
-        const thinkingModels = this.getThinkingModels();
-        if (thinkingModels[model]) {
-          actualModel = thinkingModels[model];
-        } else {
-          // Add thinking tokens to prompt
-          const thinkingPrefix = options.thinkingTokens?.join(" ") || 
-            "Let me think through this step by step:\n\n";
-          actualPrompt = thinkingPrefix + prompt;
-        }
+        // Add thinking tokens to prompt for deep reasoning
+        // Note: |thinking model variants don't exist yet, so we use prompt engineering
+        const thinkingPrefix = options.thinkingTokens?.join(" ") || 
+          "Let me think through this step by step:\n\n";
+        actualPrompt = thinkingPrefix + prompt;
+        
+        // Optional: Log that we're using thinking mode
+        this.logger.debug(`Using thinking mode for model: ${model}`);
       }
 
       const response = options?.context
@@ -512,13 +510,6 @@ ${initialResponses.map(r => `${r?.model}:\n${r?.response}`).join("\n\n---\n\n")}
     }
   }
 
-  private getThinkingModels(): Record<string, string> {
-    // Map of regular models to their thinking variants
-    return {
-      "openai/gpt-4o": "openai/gpt-4o|thinking",
-      "google/gemini-2.5-pro": "google/gemini-2.5-pro|thinking",
-      "anthropic/claude-3-opus-20240229": "anthropic/claude-3-opus-20240229|thinking",
-      // Add more as they become available
-    };
-  }
+  // Note: Thinking model variants (e.g., model|thinking) are not yet available
+  // We use prompt engineering to achieve deep reasoning instead
 }
