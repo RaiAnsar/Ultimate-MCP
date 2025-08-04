@@ -17,7 +17,23 @@
 
 ## 🚀 Quick Setup (30 Seconds!)
 
-### Automatic Installation (NEW! 🎉)
+### Method 1: NPX Installation (Easiest! 🎉)
+
+```bash
+# For Claude Desktop
+npx ultimate-mcp-server install claude-desktop
+
+# For Claude Code
+npx ultimate-mcp-server install claude-code
+
+# For Cursor
+npx ultimate-mcp-server install cursor
+
+# For other platforms (interactive)
+npx ultimate-mcp-server install
+```
+
+### Method 2: Automatic Installation
 
 ```bash
 # Clone and setup with one command:
@@ -61,6 +77,15 @@ LOG_LEVEL=info
 ```
 
 2. **Add to Claude Desktop**:
+
+Using NPX (Recommended):
+```bash
+# Add with NPX - works on all platforms
+npx ultimate-mcp-server add-to-claude \
+  --key your-openrouter-api-key
+```
+
+Or manually:
 ```bash
 # For macOS/Linux
 claude mcp add ultimate node /path/to/Ultimate-MCP/dist/index.js \
@@ -77,7 +102,7 @@ claude mcp add ultimate node C:\path\to\Ultimate-MCP\dist\index.js ^
 
 Ultimate MCP works with all major AI coding assistants:
 
-- **[Cursor](./PLATFORM_INSTALLATION.md#1-cursor-ide)** - 1-click installation available!
+- **[Cursor](https://cursor.com/install-mcp?name=ultimate-mcp&config=eyJjb21tYW5kIjogIm5weCIsICJhcmdzIjogWyJ1bHRpbWF0ZS1tY3Atc2VydmVyIl0sICJlbnYiOiB7Ik9QRU5ST1VURVJfQVBJX0tFWSI6ICJZT1VSX0FQSV9LRVkifX0%3D)** - 1-click installation available!
 - **[Claude Desktop](./PLATFORM_INSTALLATION.md#3-claude-desktop)** - Full integration
 - **[Claude Code](./PLATFORM_INSTALLATION.md#4-claude-code)** - CLI support
 - **[Google AI Studio (Gemini)](./PLATFORM_INSTALLATION.md#2-google-ai-studio-gemini)** - Native MCP support

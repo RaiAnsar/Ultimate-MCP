@@ -1,14 +1,27 @@
 # Ultimate MCP Server - Multi-Platform Installation Guide
 
-## 🚀 Quick Install Links
+## 🚀 Quick Install with NPX (Recommended!)
 
-### Cursor (1-Click Install)
-[![Install in Cursor](https://img.shields.io/badge/Install%20in-Cursor-blue?style=for-the-badge)](https://cursor.sh/mcp/install?repo=RaiAnsar/Ultimate-MCP)
+The easiest way to install Ultimate MCP on any platform:
 
-Click the button above or run:
 ```bash
-cursor mcp install https://github.com/RaiAnsar/Ultimate-MCP
+# Interactive installation
+npx ultimate-mcp-server install
+
+# Platform-specific installation
+npx ultimate-mcp-server install claude-desktop
+npx ultimate-mcp-server install claude-code
+npx ultimate-mcp-server install cursor
+npx ultimate-mcp-server install gemini
+npx ultimate-mcp-server install vscode
 ```
+
+## 🎯 1-Click Install Links
+
+### Cursor
+[![Install in Cursor](https://img.shields.io/badge/Install%20in-Cursor-blue?style=for-the-badge)](https://cursor.com/install-mcp?name=ultimate-mcp&config=eyJjb21tYW5kIjogIm5weCIsICJhcmdzIjogWyJ1bHRpbWF0ZS1tY3Atc2VydmVyIl0sICJlbnYiOiB7Ik9QRU5ST1VURVJfQVBJX0tFWSI6ICJZT1VSX0FQSV9LRVkifX0%3D)
+
+**Note:** After clicking, you'll need to replace `YOUR_API_KEY` with your actual OpenRouter API key in Cursor settings.
 
 ### VS Code (with Continue extension)
 [![Install in VS Code](https://img.shields.io/badge/Install%20in-VS%20Code-blue?style=for-the-badge)](vscode:extension/continue.continue)
@@ -17,7 +30,12 @@ cursor mcp install https://github.com/RaiAnsar/Ultimate-MCP
 
 ### 1. Cursor IDE
 
-#### Automatic Installation (Recommended)
+#### NPX Installation (Easiest)
+```bash
+npx ultimate-mcp-server install cursor
+```
+
+#### Automatic Installation
 1. Open Cursor
 2. Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux)
 3. Type "MCP: Install Server" and select it
