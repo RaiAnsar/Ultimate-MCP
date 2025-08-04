@@ -1,0 +1,13 @@
+{
+  "models": {
+    "default": "claude-code/opus",
+    "available": [
+      "claude-code/opus",
+      "claude-code/sonnet",
+      "openai/gpt-4o",
+      "google/gemini-2.5-pro"
+    ]
+  },
+  "projectName": "Ultimate MCP Server",
+  "projectDescription": "A comprehensive MCP server with multi-AI orchestration, debugging tools, and enterprise capabilities"
+}

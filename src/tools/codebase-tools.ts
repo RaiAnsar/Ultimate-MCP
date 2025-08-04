@@ -3,6 +3,7 @@ import { ToolDefinition } from "../types/index.js";
 import { FileCollector } from "../utils/file-collector.js";
 import { AIOrchestrator } from "../providers/orchestrator.js";
 import { Logger } from "../utils/logger.js";
+import { MODELS } from "../config/models.js";
 
 const logger = new Logger("CodebaseTools");
 import path from "path";
@@ -288,7 +289,7 @@ async function performChunkedAnalysis(
   }
   
   const finalResult = await orchestrator.callModel(
-    model || "google/gemini-2.5-pro",
+    model || MODELS.SYNTHESIS_MODEL,
     synthesisPrompt,
     { temperature: 0.3, useThinking }
   );
@@ -334,7 +335,7 @@ async function performSummarizeFirstAnalysis(
   }
   
   const finalResult = await orchestrator.callModel(
-    model || "google/gemini-2.5-pro",
+    model || MODELS.SYNTHESIS_MODEL,
     analysisPrompt,
     { temperature: 0.3, useThinking }
   );
@@ -350,10 +351,10 @@ async function performSummarizeFirstAnalysis(
 function selectModelForCodebase(totalSize: number): string {
   // Select model based on context size
   if (totalSize > 50 * 1024 * 1024) { // > 50MB
-    return "google/gemini-2.5-pro"; // Large context window
+    return MODELS.GEMINI_PRO; // 2M token context window
   } else if (totalSize > 10 * 1024 * 1024) { // > 10MB
-    return "openai/gpt-4o";
+    return MODELS.GEMINI_FLASH; // 1M token context window
   } else {
-    return "openai/gpt-4o-mini";
+    return MODELS.GPT_4O_MINI;
   }
 }

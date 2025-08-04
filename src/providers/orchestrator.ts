@@ -10,6 +10,7 @@ import { OpenRouterProvider } from "./openrouter.js";
 // import { OpenAIProvider } from "./openai.js";
 // import { GoogleProvider } from "./google.js";
 import PQueue from "p-queue";
+import { MODELS } from "../config/models.js";
 
 interface ProviderResponse {
   model: string;
@@ -360,12 +361,12 @@ ${initialResponses.map(r => `${r?.model}:\n${r?.response}`).join("\n\n---\n\n")}
     switch (strategy) {
       case OrchestrationStrategy.Debate:
       case OrchestrationStrategy.Consensus:
-        return ["openai/gpt-4o", "google/gemini-2.5-pro", "meta-llama/llama-3.3-70b-instruct"];
+        return [MODELS.GPT_4O, MODELS.GEMINI_PRO, MODELS.LLAMA_3_70B];
       case OrchestrationStrategy.Specialist:
-        return ["openai/gpt-4o"];
+        return [MODELS.GPT_4O];
       default:
         // Return some default models that are generally available
-        return ["openai/gpt-4o-mini", "google/gemini-2.5-flash", "meta-llama/llama-3.3-70b-instruct"];
+        return [MODELS.GPT_4O_MINI, MODELS.GEMINI_PRO, MODELS.LLAMA_3_70B];
     }
   }
 
@@ -374,22 +375,28 @@ ${initialResponses.map(r => `${r?.model}:\n${r?.response}`).join("\n\n---\n\n")}
       responses.map(r => `${r.model}:\n${r.response}`).join("\n\n---\n\n")
     }`;
 
-    const synthesis = await this.callModel("google/gemini-2.5-pro", synthesisPrompt, { temperature: 0.3 });
+    const synthesis = await this.callModel(MODELS.SYNTHESIS_MODEL, synthesisPrompt, { temperature: 0.3 });
     return synthesis.response;
   }
 
   private async generateDebateConclusion(rounds: any[], originalPrompt: string): Promise<string> {
     const conclusionPrompt = `Original topic: ${originalPrompt}\n\nBased on this debate with ${rounds.length} rounds, provide a concise 3-4 sentence conclusion that acknowledges different perspectives and identifies the key insight.`;
     
-    const conclusion = await this.callModel("google/gemini-2.5-pro", conclusionPrompt, { temperature: 0.5 });
+    const conclusion = await this.callModel(MODELS.SYNTHESIS_MODEL, conclusionPrompt, { temperature: 0.5 });
     return conclusion.response;
   }
 
   private async analyzeTaskType(prompt: string): Promise<string> {
-    // Simple task classification
+    // Enhanced task classification with better coding detection
     const lower = prompt.toLowerCase();
     
-    if (lower.includes("code") || lower.includes("debug") || lower.includes("function")) {
+    // Enhanced coding detection for Kimi K2's strengths
+    if (lower.includes("code") || lower.includes("debug") || lower.includes("function") ||
+        lower.includes("implement") || lower.includes("refactor") || lower.includes("optimize") ||
+        lower.includes("algorithm") || lower.includes("class") || lower.includes("method") ||
+        lower.includes("api") || lower.includes("typescript") || lower.includes("javascript") ||
+        lower.includes("python") || lower.includes("programming") || lower.includes("fix") ||
+        lower.includes("error") || lower.includes("bug") || lower.includes("component")) {
       return "coding";
     } else if (lower.includes("analyze") || lower.includes("research")) {
       return "analysis";
@@ -405,11 +412,11 @@ ${initialResponses.map(r => `${r?.model}:\n${r?.response}`).join("\n\n---\n\n")}
   private selectBestModel(taskType: string, availableModels: string[]): string {
     // Model selection logic based on task type
     const preferences: Record<string, string[]> = {
-      coding: ["qwen/qwen-2.5-coder-32b-instruct", "openai/gpt-4o", "deepseek/deepseek-v3"],
-      analysis: ["google/gemini-2.5-pro", "openai/o1", "mistralai/mistral-large-2411"],
-      creative: ["openai/gpt-4o", "google/gemini-2.5-pro", "meta-llama/llama-3.3-70b-instruct"],
-      mathematical: ["openai/o1", "google/gemini-2.5-pro", "qwen/qwq-32b-preview"],
-      general: ["google/gemini-2.5-pro", "openai/gpt-4o", "meta-llama/llama-3.3-70b-instruct"],
+      coding: [MODELS.KIMI_K2, MODELS.QWEN_CODER, MODELS.GPT_4O, MODELS.DEEPSEEK],
+      analysis: [MODELS.ANALYSIS_MODEL, MODELS.GPT_4O, MODELS.MISTRAL_LARGE],
+      creative: [MODELS.GPT_4O, MODELS.GEMINI_PRO, MODELS.LLAMA_3_70B],
+      mathematical: [MODELS.GPT_4O, MODELS.GEMINI_PRO, MODELS.QWEN_CODER],
+      general: [MODELS.GEMINI_PRO, MODELS.GPT_4O, MODELS.LLAMA_3_70B],
     };
 
     const preferred = preferences[taskType] || preferences.general;

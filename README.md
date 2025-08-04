@@ -73,6 +73,20 @@ claude mcp add ultimate node C:\path\to\Ultimate-MCP\dist\index.js ^
 
 3. **Restart Claude Desktop** and start using the Ultimate MCP Server!
 
+## 🖥️ Multi-Platform Support
+
+Ultimate MCP works with all major AI coding assistants:
+
+- **[Cursor](./PLATFORM_INSTALLATION.md#1-cursor-ide)** - 1-click installation available!
+- **[Claude Desktop](./PLATFORM_INSTALLATION.md#3-claude-desktop)** - Full integration
+- **[Claude Code](./PLATFORM_INSTALLATION.md#4-claude-code)** - CLI support
+- **[Google AI Studio (Gemini)](./PLATFORM_INSTALLATION.md#2-google-ai-studio-gemini)** - Native MCP support
+- **[VS Code](./PLATFORM_INSTALLATION.md#5-vs-code-via-continue-extension)** - Via Continue extension
+- **[Cline](./PLATFORM_INSTALLATION.md#6-cline-vs-code-extension)** - Direct integration
+- **[Windsurf](./PLATFORM_INSTALLATION.md#7-windsurf-ide)** - Built-in support
+
+See [Platform Installation Guide](./PLATFORM_INSTALLATION.md) for detailed instructions.
+
 ## 💡 Key Features
 
 ### 🤖 Multi-AI Orchestration
@@ -98,12 +112,14 @@ Access and coordinate multiple AI models with sophisticated strategies:
 
 ### 📊 Available Models
 Through OpenRouter, access models from:
-- **OpenAI**: GPT-4, GPT-4 Turbo, GPT-3.5
+- **OpenAI**: GPT-4o, GPT-4o Mini
 - **Anthropic**: Claude 3 Opus, Sonnet, Haiku
-- **Google**: Gemini Pro, Gemini Pro Vision
-- **Meta**: Llama 3, Llama 2
+- **Google**: Gemini 2.5 Pro, Gemini 2.5 Flash
+- **Meta**: Llama 3.3 70B, Llama 3.1 8B
 - **Mistral**: Mistral Large, Mixtral
-- And 90+ more models!
+- **Moonshot**: Kimi K2 (1T params, exceptional coding)
+- **Others**: Qwen 2.5 Coder, DeepSeek V3, Perplexity
+- And 100+ more models!
 
 ## 📖 Usage Examples
 

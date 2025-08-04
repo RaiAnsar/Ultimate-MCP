@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { AIProvider, Message, CompletionOptions, ModelConfig } from "../types/index.js";
 import { Logger } from "../utils/logger.js";
+import { MODELS, FALLBACK_MODELS } from "../config/models.js";
 
 export class OpenRouterProvider implements AIProvider {
   name = "openrouter";
@@ -53,58 +54,119 @@ export class OpenRouterProvider implements AIProvider {
     });
   }
 
-  async complete(prompt: string, options?: CompletionOptions): Promise<string> {
-    try {
-      const response = await this.client.chat.completions.create({
-        model: options?.model || "openai/gpt-4o",
-        messages: [
-          ...(options?.systemPrompt ? [{ role: "system" as const, content: options.systemPrompt }] : []),
-          { role: "user", content: prompt },
-        ],
-        temperature: options?.temperature ?? 0.7,
-        max_tokens: options?.maxTokens,
-        top_p: options?.topP,
-        frequency_penalty: options?.frequencyPenalty,
-        presence_penalty: options?.presencePenalty,
-        stop: options?.stopSequences,
-        stream: false,
-      });
-
-      return response.choices[0]?.message?.content || "";
-    } catch (error) {
-      this.logger.error(`OpenRouter completion failed:`, error);
-      throw error;
+  private getModelWithFallback(requestedModel?: string): string {
+    const model = requestedModel || MODELS.GPT_4O;
+    
+    // Check if this model has a fallback defined
+    if (FALLBACK_MODELS[model as keyof typeof FALLBACK_MODELS]) {
+      return FALLBACK_MODELS[model as keyof typeof FALLBACK_MODELS];
     }
+    
+    return model;
+  }
+
+  async complete(prompt: string, options?: CompletionOptions): Promise<string> {
+    const originalModel = options?.model || MODELS.GPT_4O;
+    let model = originalModel;
+    let lastError: any;
+
+    // Try original model first, then fallback if needed
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const response = await this.client.chat.completions.create({
+          model,
+          messages: [
+            ...(options?.systemPrompt ? [{ role: "system" as const, content: options.systemPrompt }] : []),
+            { role: "user", content: prompt },
+          ],
+          temperature: options?.temperature ?? 0.7,
+          max_tokens: options?.maxTokens,
+          top_p: options?.topP,
+          frequency_penalty: options?.frequencyPenalty,
+          presence_penalty: options?.presencePenalty,
+          stop: options?.stopSequences,
+          stream: false,
+        });
+
+        if (model !== originalModel) {
+          this.logger.info(`Used fallback model ${model} instead of ${originalModel}`);
+        }
+        return response.choices[0]?.message?.content || "";
+      } catch (error: any) {
+        lastError = error;
+        
+        // Check if it's a 404 model not found error
+        if (error?.status === 404 && attempt === 0) {
+          const fallbackModel = this.getModelWithFallback(model);
+          if (fallbackModel !== model) {
+            this.logger.warn(`Model ${model} not found, trying fallback: ${fallbackModel}`);
+            model = fallbackModel;
+            continue;
+          }
+        }
+        
+        // If not a 404 or no fallback available, throw the error
+        break;
+      }
+    }
+
+    this.logger.error(`OpenRouter completion failed:`, lastError);
+    throw lastError;
   }
 
   async completeWithContext(messages: Message[], options?: CompletionOptions): Promise<string> {
-    try {
-      const response = await this.client.chat.completions.create({
-        model: options?.model || "openai/gpt-4o",
-        messages: messages.map(msg => ({
-          role: msg.role,
-          content: msg.content,
-        })),
-        temperature: options?.temperature ?? 0.7,
-        max_tokens: options?.maxTokens,
-        top_p: options?.topP,
-        frequency_penalty: options?.frequencyPenalty,
-        presence_penalty: options?.presencePenalty,
-        stop: options?.stopSequences,
-        stream: false,
-      });
+    const originalModel = options?.model || MODELS.GPT_4O;
+    let model = originalModel;
+    let lastError: any;
 
-      return response.choices[0]?.message?.content || "";
-    } catch (error) {
-      this.logger.error(`OpenRouter completion with context failed:`, error);
-      throw error;
+    // Try original model first, then fallback if needed
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const response = await this.client.chat.completions.create({
+          model,
+          messages: messages.map(msg => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+          temperature: options?.temperature ?? 0.7,
+          max_tokens: options?.maxTokens,
+          top_p: options?.topP,
+          frequency_penalty: options?.frequencyPenalty,
+          presence_penalty: options?.presencePenalty,
+          stop: options?.stopSequences,
+          stream: false,
+        });
+
+        if (model !== originalModel) {
+          this.logger.info(`Used fallback model ${model} instead of ${originalModel}`);
+        }
+        return response.choices[0]?.message?.content || "";
+      } catch (error: any) {
+        lastError = error;
+        
+        // Check if it's a 404 model not found error
+        if (error?.status === 404 && attempt === 0) {
+          const fallbackModel = this.getModelWithFallback(model);
+          if (fallbackModel !== model) {
+            this.logger.warn(`Model ${model} not found, trying fallback: ${fallbackModel}`);
+            model = fallbackModel;
+            continue;
+          }
+        }
+        
+        // If not a 404 or no fallback available, throw the error
+        break;
+      }
     }
+
+    this.logger.error(`OpenRouter completion with context failed:`, lastError);
+    throw lastError;
   }
 
   async *stream(messages: Message[], options?: CompletionOptions): AsyncGenerator<string> {
     try {
       const stream = await this.client.chat.completions.create({
-        model: options?.model || "openai/gpt-4o",
+        model: options?.model || MODELS.GPT_4O,
         messages: messages.map(msg => ({
           role: msg.role,
           content: msg.content,
