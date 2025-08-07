@@ -9,12 +9,12 @@ import {
   ContextExtractionOptions,
   FileContext,
   ImportInfo,
-  ExportInfo,
+  ExportInfo as _ExportInfo,
   ClassInfo,
   FunctionInfo,
-  MethodInfo,
+  MethodInfo as _MethodInfo,
   VariableInfo,
-  ParameterInfo
+  ParameterInfo as _ParameterInfo
 } from '../types.js';
 import { Logger } from '../../utils/logger.js';
 
@@ -209,7 +209,11 @@ export class PythonContextExtractor extends BaseContextExtractor {
             signature: line.trim(),
             docstring,
             complexity: this.calculateComplexity(functionContent),
-            parameters: this.extractParameters(line)
+            parameters: this.extractParameters(line).map(name => ({ 
+              name, 
+              type: undefined, 
+              required: true 
+            }))
           },
           relevanceScore: 0.8
         });
@@ -271,7 +275,7 @@ export class PythonContextExtractor extends BaseContextExtractor {
           metadata: {
             name: className,
             docstring,
-            extends: baseClasses ? baseClasses.split(',').map(s => s.trim()) : undefined,
+            extends: baseClasses || undefined,
             methods: this.extractClassMethods(lines.slice(startLine - 1, endLine))
           },
           relevanceScore: 0.9

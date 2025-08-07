@@ -100,19 +100,19 @@ export class TypeScriptContextExtractor extends BaseContextExtractor {
       });
       
       traverse(ast, {
-        ImportDeclaration: (path) => {
+        ImportDeclaration: (path: any) => {
           const node = path.node;
           const importInfo = this.extractImportInfo(node);
           fileContext.imports.push(importInfo);
         },
         
-        ExportNamedDeclaration: (path) => {
+        ExportNamedDeclaration: (path: any) => {
           const node = path.node;
           const exportInfo = this.extractExportInfo(node);
           if (exportInfo) fileContext.exports.push(exportInfo);
         },
         
-        ExportDefaultDeclaration: (path) => {
+        ExportDefaultDeclaration: (path: any) => {
           fileContext.exports.push({
             name: 'default',
             type: 'default',
@@ -120,19 +120,19 @@ export class TypeScriptContextExtractor extends BaseContextExtractor {
           });
         },
         
-        ClassDeclaration: (path) => {
+        ClassDeclaration: (path: any) => {
           const classInfo = this.extractClassInfo(path.node, content);
           if (classInfo) fileContext.classes.push(classInfo);
         },
         
-        FunctionDeclaration: (path) => {
+        FunctionDeclaration: (path: any) => {
           if (!this.isInsideClass(path)) {
             const funcInfo = this.extractFunctionInfo(path.node, content);
             if (funcInfo) fileContext.functions.push(funcInfo);
           }
         },
         
-        VariableDeclaration: (path) => {
+        VariableDeclaration: (path: any) => {
           if (!this.isInsideFunction(path) && !this.isInsideClass(path)) {
             const varInfos = this.extractVariableInfo(path.node);
             fileContext.variables.push(...varInfos);
@@ -161,7 +161,7 @@ export class TypeScriptContextExtractor extends BaseContextExtractor {
     const lines = content.split('\n');
     
     traverse(ast, {
-      ImportDeclaration: (path) => {
+      ImportDeclaration: (path: any) => {
         const node = path.node;
         const startLine = node.loc?.start.line || 1;
         const endLine = node.loc?.end.line || startLine;
@@ -195,7 +195,7 @@ export class TypeScriptContextExtractor extends BaseContextExtractor {
     const contexts: CodeContext[] = [];
     
     traverse(ast, {
-      FunctionDeclaration: (path) => {
+      FunctionDeclaration: (path: any) => {
         if (!this.isInsideClass(path)) {
           const node = path.node;
           if (node.id) {
@@ -205,7 +205,7 @@ export class TypeScriptContextExtractor extends BaseContextExtractor {
         }
       },
       
-      ArrowFunctionExpression: (path) => {
+      ArrowFunctionExpression: (path: any) => {
         if (!this.isInsideClass(path) && t.isVariableDeclarator(path.parent)) {
           const parent = path.parent;
           if (t.isIdentifier(parent.id)) {
@@ -236,7 +236,7 @@ export class TypeScriptContextExtractor extends BaseContextExtractor {
     const contexts: CodeContext[] = [];
     
     traverse(ast, {
-      ClassDeclaration: (path) => {
+      ClassDeclaration: (path: any) => {
         const node = path.node;
         if (node.id) {
           const context = this.createClassContext(node, content, filePath, options);
@@ -257,7 +257,7 @@ export class TypeScriptContextExtractor extends BaseContextExtractor {
     const lines = content.split('\n');
     
     traverse(ast, {
-      ExportNamedDeclaration: (path) => {
+      ExportNamedDeclaration: (path: any) => {
         const node = path.node;
         if (node.loc) {
           const startLine = node.loc.start.line;

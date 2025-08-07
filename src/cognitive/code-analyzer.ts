@@ -34,7 +34,7 @@ export class CodeAnalyzer {
       // Traverse AST to extract information
       traverse(ast, {
         // Functions
-        FunctionDeclaration(path) {
+        FunctionDeclaration(path: any) {
           const node = path.node;
           if (node.id) {
             symbols.push({
@@ -51,7 +51,7 @@ export class CodeAnalyzer {
         },
         
         // Arrow functions assigned to variables
-        VariableDeclarator(path) {
+        VariableDeclarator(path: any) {
           if (t.isArrowFunctionExpression(path.node.init) || 
               t.isFunctionExpression(path.node.init)) {
             if (t.isIdentifier(path.node.id)) {
@@ -69,7 +69,7 @@ export class CodeAnalyzer {
         },
         
         // Classes
-        ClassDeclaration(path) {
+        ClassDeclaration(path: any) {
           const node = path.node;
           if (node.id) {
             symbols.push({
@@ -108,7 +108,7 @@ export class CodeAnalyzer {
         },
         
         // Imports
-        ImportDeclaration(path) {
+        ImportDeclaration(path: any) {
           const node = path.node;
           const source = node.source.value;
           
@@ -137,7 +137,7 @@ export class CodeAnalyzer {
         },
         
         // Exports
-        ExportNamedDeclaration(path) {
+        ExportNamedDeclaration(path: any) {
           const node = path.node;
           if (node.declaration) {
             if (t.isFunctionDeclaration(node.declaration) && node.declaration.id) {
@@ -155,7 +155,7 @@ export class CodeAnalyzer {
         },
         
         // Pattern detection: try-catch blocks
-        TryStatement(path) {
+        TryStatement(path: any) {
           const patternType = 'error-handling';
           if (!patterns.has(patternType)) {
             patterns.set(patternType, {
@@ -175,7 +175,7 @@ export class CodeAnalyzer {
         },
         
         // Pattern detection: async/await
-        AwaitExpression(path) {
+        AwaitExpression(path: any) {
           const patternType = 'async-await';
           if (!patterns.has(patternType)) {
             patterns.set(patternType, {
@@ -195,7 +195,7 @@ export class CodeAnalyzer {
         },
         
         // Pattern detection: Promise usage
-        NewExpression(path) {
+        NewExpression(path: any) {
           if (t.isIdentifier(path.node.callee) && path.node.callee.name === 'Promise') {
             const patternType = 'promise';
             if (!patterns.has(patternType)) {
@@ -350,7 +350,7 @@ export class CodeAnalyzer {
       ForOfStatement() { complexity++; },
       DoWhileStatement() { complexity++; },
       CatchClause() { complexity++; },
-      LogicalExpression(path) {
+      LogicalExpression(path: any) {
         if (path.node.operator === '&&' || path.node.operator === '||') {
           complexity++;
         }
