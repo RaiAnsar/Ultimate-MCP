@@ -1,0 +1,45 @@
+# Source files (we only ship compiled)
+src/
+*.ts
+!*.d.ts
+
+# Development files
+.taskmaster/
+tests/
+*.test.*
+.env
+.env.*
+
+# Config files
+tsconfig.json
+.eslintrc.*
+.prettierrc
+vitest.config.ts
+
+# Documentation (optional, you might want to keep some)
+*.md
+!README.md
+!LICENSE
+!PLATFORM_INSTALLATION.md
+
+# Git and IDE
+.git/
+.github/
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Build artifacts we don't need
+*.map
+logs/
+coverage/
+
+# Scripts
+setup.sh
+setup.bat
+cursor-install.sh
+
+# Examples and demos
+examples/
+docs/

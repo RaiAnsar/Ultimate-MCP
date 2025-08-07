@@ -3,6 +3,15 @@ import { AIOrchestrator } from "../providers/orchestrator.js";
 import { ToolDefinition } from "../types/index.js";
 import * as debugTools from "./debug-tools.js";
 import { createCodebaseTools } from "./codebase-tools.js";
+import { ragTools } from "./rag-tools.js";
+import { promptEnhancementTools } from "./prompt-enhancement-tools.js";
+import { universalSearchTools } from "./universal-search-tools.js";
+import { cognitiveMemoryTools } from "./cognitive-memory-tools.js";
+import { codeContextTools } from "./code-context-tools.js";
+import { contentManagementTools } from "./content-management-tools.js";
+import { autonomousExplorationTools } from "./autonomous-exploration-tools.js";
+import { uiUnderstandingTools } from "./ui-understanding-tools.js";
+import { largeContextTools } from "./large-context-tools.js";
 // import * as aiTools from "./ai-tools.js";
 // import * as codeTools from "./code-tools.js";
 // import * as systemTools from "./system-tools.js";
@@ -92,6 +101,56 @@ export async function registerBuiltInTools(
 
   // Register system tools
   await registerSystemTools(server);
+  
+  // Register RAG tools
+  for (const tool of ragTools) {
+    server.registerTool(tool);
+  }
+  
+  // Register prompt enhancement tools
+  for (const tool of promptEnhancementTools) {
+    // Pass orchestrator to tools that need it
+    const toolWithOrchestrator = {
+      ...tool,
+      handler: async (args: any) => tool.handler(args, orchestrator)
+    };
+    server.registerTool(toolWithOrchestrator);
+  }
+  
+  // Register universal search tools
+  for (const tool of universalSearchTools) {
+    server.registerTool(tool);
+  }
+  
+  // Register cognitive memory tools
+  for (const tool of cognitiveMemoryTools) {
+    server.registerTool(tool);
+  }
+  
+  // Register code context tools
+  for (const tool of codeContextTools) {
+    server.registerTool(tool);
+  }
+  
+  // Register content management tools
+  for (const tool of contentManagementTools) {
+    server.registerTool(tool);
+  }
+  
+  // Register autonomous exploration tools
+  for (const tool of autonomousExplorationTools) {
+    server.registerTool(tool);
+  }
+  
+  // Register UI understanding tools
+  for (const tool of uiUnderstandingTools) {
+    server.registerTool(tool);
+  }
+  
+  // Register large context analysis tools
+  for (const tool of largeContextTools) {
+    server.registerTool(tool);
+  }
 }
 
 function formatOrchestrationResult(result: any): string {

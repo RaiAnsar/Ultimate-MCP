@@ -15,7 +15,15 @@ import { ResourceRegistry } from "./resource-registry.js";
 import { PromptRegistry } from "./prompt-registry.js";
 import { ContextManager } from "./context-manager.js";
 import { MetricsCollector } from "../utils/metrics.js";
+import { TransportManager, TransportType, TransportConfig } from "../transports/index.js";
 import type { ServerCapabilities } from "../types/index.js";
+
+export interface ServerConfig {
+  name?: string;
+  version?: string;
+  transports?: TransportConfig[];
+  capabilities?: Partial<ServerCapabilities>;
+}
 
 export class UltimateMCPServer {
   private server: Server;
@@ -25,9 +33,18 @@ export class UltimateMCPServer {
   private promptRegistry: PromptRegistry;
   private contextManager: ContextManager;
   private metrics: MetricsCollector;
+  private transportManager?: TransportManager;
   private capabilities: ServerCapabilities;
+  private config: ServerConfig;
 
-  constructor(name: string = "ultimate-mcp-server", version: string = "1.0.0") {
+  constructor(config: ServerConfig = {}) {
+    this.config = {
+      name: config.name || "ultimate-mcp-server",
+      version: config.version || "2.0.0",
+      transports: config.transports || [{ type: TransportType.STDIO }],
+      capabilities: config.capabilities || {},
+    };
+
     this.logger = new Logger("UltimateMCPServer");
     this.toolRegistry = new ToolRegistry();
     this.resourceRegistry = new ResourceRegistry();
@@ -40,6 +57,7 @@ export class UltimateMCPServer {
       resources: true,
       prompts: true,
       logging: true,
+      ...this.config.capabilities,
     };
 
     // Initialize MCP server with capabilities
@@ -52,155 +70,178 @@ export class UltimateMCPServer {
 
     this.server = new Server(
       {
-        name,
-        version,
+        name: this.config.name,
+        version: this.config.version,
       },
-      {
-        capabilities: mcpCapabilities,
-      }
+      mcpCapabilities
     );
 
     this.setupHandlers();
-    this.logger.info(`${name} v${version} initialized`);
+    this.logger.info(`${this.config.name} v${this.config.version} initialized`);
   }
 
   private setupHandlers(): void {
     // Tool handlers
-    this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      const tools = await this.toolRegistry.listTools();
-      return { tools };
-    });
+    if (this.capabilities.tools) {
+      this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
+        tools: this.toolRegistry.listTools(),
+      }));
 
-    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      const startTime = Date.now();
-      try {
-        const { name, arguments: args } = request.params;
-        
-        // Log tool call
-        this.logger.debug(`Calling tool: ${name}`, { args });
-        
-        // Execute tool
-        const result = await this.toolRegistry.executeTool(name, args);
-        
-        // Collect metrics
-        this.metrics.recordToolCall(name, Date.now() - startTime, true);
-        
-        return {
-          content: [
-            {
-              type: "text",
-              text: typeof result === "string" ? result : JSON.stringify(result, null, 2),
-            },
-          ],
-        };
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        this.logger.error(`Tool execution failed: ${errorMessage}`);
-        this.metrics.recordToolCall(request.params.name, Date.now() - startTime, false);
-        
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Error: ${errorMessage}`,
-            },
-          ],
-          isError: true,
-        };
-      }
-    });
+      this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
+        this.metrics.recordToolCall(request.params.name);
+        return this.toolRegistry.callTool(request.params.name, request.params.arguments);
+      });
+    }
 
     // Resource handlers
-    this.server.setRequestHandler(ListResourcesRequestSchema, async () => {
-      const resources = await this.resourceRegistry.listResources();
-      return { resources };
-    });
+    if (this.capabilities.resources) {
+      this.server.setRequestHandler(ListResourcesRequestSchema, async () => ({
+        resources: this.resourceRegistry.listResources(),
+      }));
 
-    this.server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
-      try {
-        const { uri } = request.params;
-        const content = await this.resourceRegistry.readResource(uri);
-        
-        return {
-          contents: [
-            {
-              uri,
-              mimeType: content.mimeType || "text/plain",
-              text: content.text,
-            },
-          ],
-        };
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        throw new Error(`Failed to read resource: ${errorMessage}`);
-      }
-    });
+      this.server.setRequestHandler(ReadResourceRequestSchema, async (request) => ({
+        contents: await this.resourceRegistry.readResource(request.params.uri),
+      }));
+    }
 
     // Prompt handlers
-    this.server.setRequestHandler(ListPromptsRequestSchema, async () => {
-      const prompts = await this.promptRegistry.listPrompts();
-      return { prompts };
-    });
+    if (this.capabilities.prompts) {
+      this.server.setRequestHandler(ListPromptsRequestSchema, async () => ({
+        prompts: this.promptRegistry.listPrompts(),
+      }));
 
-    this.server.setRequestHandler(GetPromptRequestSchema, async (request) => {
-      try {
-        const { name, arguments: args } = request.params;
-        const result = await this.promptRegistry.getPrompt(name, args);
-        return result;
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        throw new Error(`Failed to get prompt: ${errorMessage}`);
+      this.server.setRequestHandler(GetPromptRequestSchema, async (request) => ({
+        messages: await this.promptRegistry.getPrompt(
+          request.params.name,
+          request.params.arguments
+        ),
+      }));
+    }
+
+    // Custom request handler for extended functionality
+    this.server.handleRequest = async (request: any) => {
+      this.logger.debug(`Handling request: ${request.method}`);
+      
+      // Add session context if available
+      if ((request as any).sessionContext) {
+        this.contextManager.setContext((request as any).sessionContext);
       }
-    });
 
-    // Logging handler - will be added when we have proper schema
-    // this.server.setNotificationHandler("notifications/log", async (params) => {
-    //   const { level, message, data } = params as any;
-    //   this.logger.log(level || "info", message, data);
-    // });
+      // Process the request through the standard MCP server
+      const response = await this.server.handleRequest(request);
+      
+      // Update session context if needed
+      if ((request as any).sessionContext) {
+        (request as any).sessionContext = this.contextManager.getContext();
+      }
+
+      return response;
+    };
   }
 
-  // Public API for registering tools, resources, and prompts
-  public registerTool(tool: any): void {
-    this.toolRegistry.register(tool);
+  async start(): Promise<void> {
+    if (this.config.transports && this.config.transports.length > 0) {
+      // Multi-transport mode
+      this.transportManager = new TransportManager(this.server, {
+        transports: this.config.transports,
+      });
+      
+      await this.transportManager.initialize();
+      await this.transportManager.start();
+      
+      const activeTransports = this.transportManager.getActiveTransports();
+      this.logger.info(`Server started with transports: ${activeTransports.join(", ")}`);
+    } else {
+      // Default stdio mode for backward compatibility
+      const transport = new StdioServerTransport();
+      await this.server.connect(transport);
+      this.logger.info("Server started with STDIO transport");
+    }
+
+    // Start metrics collection
+    this.metrics.startCollection();
   }
 
-  public registerResource(resource: any): void {
-    this.resourceRegistry.register(resource);
+  async stop(): Promise<void> {
+    this.logger.info("Shutting down server...");
+    
+    // Stop metrics collection
+    this.metrics.stopCollection();
+
+    // Stop all transports
+    if (this.transportManager) {
+      await this.transportManager.stop();
+    }
+
+    // Clear registries
+    this.toolRegistry.clear();
+    this.resourceRegistry.clear();
+    this.promptRegistry.clear();
+    
+    this.logger.info("Server stopped");
   }
 
-  public registerPrompt(prompt: any): void {
-    this.promptRegistry.register(prompt);
+  getToolRegistry(): ToolRegistry {
+    return this.toolRegistry;
   }
 
-  public getContextManager(): ContextManager {
+  getResourceRegistry(): ResourceRegistry {
+    return this.resourceRegistry;
+  }
+
+  getPromptRegistry(): PromptRegistry {
+    return this.promptRegistry;
+  }
+
+  getContextManager(): ContextManager {
     return this.contextManager;
   }
 
-  public getMetrics(): MetricsCollector {
+  getMetrics(): MetricsCollector {
     return this.metrics;
   }
 
-  public async start(): Promise<void> {
-    const transport = new StdioServerTransport();
-    await this.server.connect(transport);
-    
-    this.logger.info("Ultimate MCP Server started successfully");
-    this.logger.info("Capabilities:", this.capabilities);
-    
-    // Log startup metrics
-    const startupMetrics = {
-      tools: this.toolRegistry.getToolCount(),
-      resources: this.resourceRegistry.getResourceCount(),
-      prompts: this.promptRegistry.getPromptCount(),
-    };
-    
-    this.logger.info("Registered components:", startupMetrics);
+  getTransportStatus(): Record<string, any> | null {
+    if (this.transportManager) {
+      return {
+        active: this.transportManager.getActiveTransports(),
+        status: this.transportManager.getStatus(),
+      };
+    }
+    return null;
   }
 
-  public async stop(): Promise<void> {
-    await this.server.close();
-    await this.contextManager.close();
-    this.logger.info("Ultimate MCP Server stopped");
+  // Helper method to configure for specific platforms
+  static createForPlatform(platform: string): UltimateMCPServer {
+    let config: ServerConfig = {
+      name: "ultimate-mcp-server",
+      version: "2.0.0",
+    };
+
+    switch (platform) {
+      case "gemini":
+        config.transports = [
+          { type: TransportType.HTTP, port: 3001 },
+          { type: TransportType.SSE, port: 3000 },
+        ];
+        break;
+      case "cursor":
+      case "vscode":
+        config.transports = [
+          { type: TransportType.STDIO },
+          { type: TransportType.HTTP, port: 3001 },
+        ];
+        break;
+      case "web":
+        config.transports = [
+          { type: TransportType.HTTP, port: 3001 },
+          { type: TransportType.SSE, port: 3000 },
+        ];
+        break;
+      default:
+        config.transports = [{ type: TransportType.STDIO }];
+    }
+
+    return new UltimateMCPServer(config);
   }
 }

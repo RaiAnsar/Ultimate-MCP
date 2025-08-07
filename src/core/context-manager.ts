@@ -3,6 +3,7 @@ import postgres from "postgres";
 import { Logger } from "../utils/logger.js";
 import type { Message } from "../types/index.js";
 import crypto from "crypto";
+import { SessionStorage } from "./session-storage.js";
 
 interface ConversationRecord {
   id: string;
@@ -21,27 +22,34 @@ interface MessageRecord extends Message {
 export class ContextManager {
   private redis: RedisClientType | null = null;
   private sql: postgres.Sql | null = null;
+  private sessionStorage: SessionStorage;
   private logger: Logger;
   private currentConversationId: string;
   private initialized: boolean = false;
+  private inMemoryCache: Map<string, MessageRecord[]> = new Map();
 
   constructor() {
     this.logger = new Logger("ContextManager");
     this.currentConversationId = this.generateId();
+    this.sessionStorage = new SessionStorage();
   }
 
   async initialize(): Promise<void> {
     if (this.initialized) return;
 
     try {
-      // Initialize Redis for fast context retrieval
+      // Initialize session storage (file-based, always available)
+      await this.sessionStorage.initialize();
+      this.logger.info("Session storage initialized");
+
+      // Initialize Redis for fast context retrieval (optional)
       if (process.env.REDIS_URL) {
         this.redis = createClient({ url: process.env.REDIS_URL });
         await this.redis.connect();
         this.logger.info("Connected to Redis");
       }
 
-      // Initialize PostgreSQL for persistent storage
+      // Initialize PostgreSQL for persistent storage (optional)
       if (process.env.DATABASE_URL) {
         this.sql = postgres(process.env.DATABASE_URL);
         await this.setupDatabase();
@@ -50,8 +58,8 @@ export class ContextManager {
 
       this.initialized = true;
     } catch (error) {
-      this.logger.warn("Context persistence not available:", error);
-      // Continue without persistence - use in-memory only
+      this.logger.warn("Some persistence layers not available:", error);
+      // Continue with available storage options
     }
   }
 
@@ -108,8 +116,11 @@ export class ContextManager {
   async addMessage(message: Message): Promise<void> {
     const messageId = this.generateId();
     const timestamp = new Date();
+    
+    // Always save to session storage (file-based)
+    await this.sessionStorage.addMessage(this.currentConversationId, message);
 
-    // Save to PostgreSQL
+    // Save to PostgreSQL if available
     if (this.sql) {
       await this.sql`
         INSERT INTO messages (id, conversation_id, role, content, name, metadata, timestamp)
@@ -125,13 +136,26 @@ export class ContextManager {
       `;
     }
 
-    // Cache in Redis
+    // Cache in Redis if available
     if (this.redis) {
       const key = `conversation:${this.currentConversationId}`;
       const messageData = JSON.stringify({ ...message, id: messageId, timestamp });
       await this.redis.rPush(key, messageData);
       await this.redis.expire(key, 3600); // 1 hour TTL
     }
+
+    // Also update in-memory cache
+    const messageRecord: MessageRecord = {
+      ...message,
+      id: messageId,
+      conversation_id: this.currentConversationId,
+      timestamp
+    };
+    
+    if (!this.inMemoryCache.has(this.currentConversationId)) {
+      this.inMemoryCache.set(this.currentConversationId, []);
+    }
+    this.inMemoryCache.get(this.currentConversationId)!.push(messageRecord);
   }
 
   async getConversationHistory(
@@ -140,7 +164,13 @@ export class ContextManager {
   ): Promise<MessageRecord[]> {
     const targetId = conversationId || this.currentConversationId;
 
-    // Try Redis first
+    // Try in-memory cache first (fastest)
+    if (this.inMemoryCache.has(targetId)) {
+      const cached = this.inMemoryCache.get(targetId)!;
+      return cached.slice(-limit);
+    }
+
+    // Try Redis next (fast)
     if (this.redis) {
       const key = `conversation:${targetId}`;
       const messages = await this.redis.lRange(key, -limit, -1);
@@ -149,7 +179,7 @@ export class ContextManager {
       }
     }
 
-    // Fallback to PostgreSQL
+    // Try PostgreSQL (persistent)
     if (this.sql) {
       const messages = await this.sql<MessageRecord[]>`
         SELECT * FROM messages
@@ -160,7 +190,14 @@ export class ContextManager {
       return messages.reverse();
     }
 
-    return [];
+    // Fallback to session storage (always available)
+    const sessionMessages = await this.sessionStorage.getConversationHistory(targetId, limit);
+    return sessionMessages.map(m => ({
+      ...m,
+      id: this.generateId(),
+      conversation_id: targetId,
+      timestamp: new Date()
+    }));
   }
 
   async searchMessages(query: string, limit: number = 20): Promise<MessageRecord[]> {
@@ -212,11 +249,20 @@ export class ContextManager {
   }
 
   async close(): Promise<void> {
+    // Save session storage
+    await this.sessionStorage.cleanup();
+    
+    // Close Redis if connected
     if (this.redis) {
       await this.redis.quit();
     }
+    
+    // Close PostgreSQL if connected
     if (this.sql) {
       await this.sql.end();
     }
+    
+    // Clear in-memory cache
+    this.inMemoryCache.clear();
   }
 }
