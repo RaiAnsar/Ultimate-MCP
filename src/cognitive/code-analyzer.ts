@@ -4,7 +4,8 @@
  */
 
 import { parse } from '@babel/parser';
-import { default as traverse } from '@babel/traverse';
+import _traverse from '@babel/traverse';
+const traverse = _traverse as any;
 import * as t from '@babel/types';
 import { CodeAnalysisResult, CodeSymbol, CodeDependency, CodePattern } from './types.js';
 import { Logger } from '../utils/logger.js';

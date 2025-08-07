@@ -76,7 +76,7 @@ export class KnowledgeGraphManager {
     
     // Generate embedding if provider is available
     if (this.embeddingProvider && !cognitiveNode.embedding) {
-      cognitiveNode.embedding = await this.embeddingProvider.generateEmbedding(
+      cognitiveNode.embedding = await this.embeddingProvider.embed(
         `${node.name} ${node.content}`
       );
     }
@@ -155,7 +155,7 @@ export class KnowledgeGraphManager {
     // Generate query embedding
     let queryEmbedding: number[] | undefined;
     if (this.embeddingProvider) {
-      queryEmbedding = await this.embeddingProvider.generateEmbedding(query);
+      queryEmbedding = await this.embeddingProvider.embed(query);
     }
     
     // Search nodes

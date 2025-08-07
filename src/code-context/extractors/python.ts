@@ -212,7 +212,7 @@ export class PythonContextExtractor extends BaseContextExtractor {
             parameters: this.extractParameters(line).map(name => ({ 
               name, 
               type: undefined, 
-              required: true 
+              optional: false 
             }))
           },
           relevanceScore: 0.8

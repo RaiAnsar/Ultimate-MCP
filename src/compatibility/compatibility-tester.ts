@@ -2,9 +2,9 @@
  * Compatibility testing framework for all supported platforms
  */
 
-import { PlatformDetector, PlatformInfo, SUPPORTED_PLATFORMS, SupportedPlatform } from './platform-detector';
-import PlatformAdapterFactory from './platform-adapter';
-import { MCPServer } from '../server';
+import { PlatformDetector, PlatformInfo, SUPPORTED_PLATFORMS, SupportedPlatform } from './platform-detector.js';
+import PlatformAdapterFactory from './platform-adapter.js';
+// import { MCPServer } from '../server.js';
 import { spawn, ChildProcess } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs/promises';

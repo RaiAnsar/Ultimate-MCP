@@ -4,7 +4,8 @@
  */
 
 import { parse } from '@babel/parser';
-import traverse from '@babel/traverse';
+import _traverse from '@babel/traverse';
+const traverse = _traverse as any;
 import * as t from '@babel/types';
 import { BaseContextExtractor } from './base.js';
 import {
