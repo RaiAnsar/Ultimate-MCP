@@ -2,6 +2,9 @@ import { EmbeddingProvider, EmbeddingConfig } from './types.js';
 import OpenAI from 'openai';
 import axios from 'axios';
 
+// Re-export for compatibility
+export { EmbeddingProvider } from './types.js';
+
 export abstract class BaseEmbeddingProvider implements EmbeddingProvider {
   abstract name: string;
   abstract model: string;
@@ -151,4 +154,9 @@ export class EmbeddingProviderFactory {
         throw new Error(`Unknown embedding provider: ${config.provider}`);
     }
   }
+}
+
+// Export convenience function
+export function createEmbeddingProvider(config: EmbeddingConfig): EmbeddingProvider {
+  return EmbeddingProviderFactory.create(config);
 }

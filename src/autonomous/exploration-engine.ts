@@ -8,7 +8,7 @@ import {
   ProjectStructure,
   DirectoryNode,
   Insight,
-  TaskContext,
+  TaskContext as _TaskContext,
   NavigationStep,
   Decision,
   ExplorationStrategy,
@@ -33,7 +33,7 @@ export class ExplorationEngine {
   private workingMemory: WorkingMemory;
   private contextManager: CodeContextManager;
   private strategies: Map<string, ExplorationStrategy>;
-  private currentTask: AutonomousTask | null = null;
+  private _currentTask: AutonomousTask | null = null;
   
   constructor() {
     this.contextManager = new CodeContextManager();
@@ -46,7 +46,7 @@ export class ExplorationEngine {
    */
   async executeTask(task: AutonomousTask): Promise<ExplorationResult> {
     logger.info(`Starting autonomous task: ${task.description}`);
-    this.currentTask = task;
+    this._currentTask = task;
     const startTime = Date.now();
     
     try {
@@ -96,7 +96,7 @@ export class ExplorationEngine {
         duration: Date.now() - startTime
       };
     } finally {
-      this.currentTask = null;
+      this._currentTask = null;
     }
   }
   
@@ -225,7 +225,7 @@ export class ExplorationEngine {
       action: 'analyze_code',
       target: 'collected_data',
       purpose: 'Synthesize findings',
-      dependencies: steps.map((s, i) => i),
+      dependencies: steps.map((_s, i) => i),
       optional: false
     });
     

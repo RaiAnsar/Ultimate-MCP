@@ -3,21 +3,19 @@
  * Provides comprehensive UI/UX analysis and design understanding
  */
 
-import { MODELS } from '../config/models';
-import { callModel } from '../utils/model-caller';
+import { MODELS } from '../config/models.js';
+import { callModel } from '../utils/model-caller.js';
 import {
   ScreenshotTile,
   UIElement,
   UIAnalysis,
   DesignSystem,
-  AccessibilityIssue,
-  UsabilityPattern,
   ComponentAnalysis,
   NavigationAnalysis,
   ContentAnalysis,
   DesignGuidelineViolation,
   UIImprovementSuggestion
-} from './types';
+} from './types.js';
 
 export class UIAnalyzer {
   private readonly visionModel = MODELS.GEMINI_2_FLASH; // google/gemini-2.5-flash
@@ -29,7 +27,7 @@ export class UIAnalyzer {
   async analyzeUI(
     screenshots: ScreenshotTile[],
     url?: string,
-    context?: string
+    _context?: string
   ): Promise<UIAnalysis> {
     // Check cache
     const cacheKey = this.getCacheKey(screenshots);
@@ -513,7 +511,7 @@ Return a JSON object with content analysis including readability scores, structu
   /**
    * Analyze brand consistency
    */
-  private async analyzeBrand(designSystem: DesignSystem, elements: UIElement[]): Promise<any> {
+  private async analyzeBrand(_designSystem: DesignSystem, _elements: UIElement[]): Promise<any> {
     return {
       consistency: 85,
       personality: ['modern', 'professional', 'clean'],
@@ -524,7 +522,7 @@ Return a JSON object with content analysis including readability scores, structu
   /**
    * Analyze performance indicators
    */
-  private async analyzePerformance(elements: UIElement[], layout: any): Promise<any> {
+  private async analyzePerformance(_elements: UIElement[], _layout: any): Promise<any> {
     return {
       visualStability: 90,
       interactionReadiness: 85,

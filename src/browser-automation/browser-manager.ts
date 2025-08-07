@@ -31,6 +31,7 @@ interface UnifiedPage {
   content(): Promise<string>;
   title(): Promise<string>;
   url(): string;
+  setViewport?(viewport: { width: number; height: number }): Promise<void>;
 }
 
 interface ScreenshotOptions {
@@ -111,10 +112,8 @@ export class BrowserManager {
     
     try {
       // Set viewport if specified
-      if (options.viewport && this.currentEngine === 'playwright') {
+      if (options.viewport && page.setViewport) {
         await page.setViewport(options.viewport);
-      } else if (options.viewport && this.currentEngine === 'puppeteer') {
-        await (page as any).setViewport(options.viewport);
       }
       
       await page.goto(url);
@@ -122,10 +121,12 @@ export class BrowserManager {
       
       // Wait for images to load
       await page.evaluate(() => {
+        const doc = (globalThis as any).document;
+        if (!doc) return Promise.resolve();
         return Promise.all(
-          Array.from(document.images)
-            .filter(img => !img.complete)
-            .map(img => new Promise(resolve => {
+          Array.from(doc.images)
+            .filter((img: any) => !img.complete)
+            .map((img: any) => new Promise(resolve => {
               img.onload = img.onerror = resolve;
             }))
         );
@@ -196,7 +197,8 @@ export class BrowserManager {
             
           case 'evaluate':
             if (action.code) {
-              const result = await page.evaluate(action.code);
+              const fn = new Function('return ' + action.code);
+              const result = await page.evaluate(fn as any);
               results.push({ type: 'evaluate', data: result });
             }
             break;
@@ -227,16 +229,18 @@ export class BrowserManager {
       for (const [key, selector] of Object.entries(selectors)) {
         try {
           data[key] = await page.evaluate((sel) => {
-            const element = document.querySelector(sel);
+            const doc = (globalThis as any).document;
+            if (!doc) return null;
+            const element = doc.querySelector(sel);
             if (!element) return null;
             
             // Try different extraction methods
-            if (element.tagName === 'IMG') {
-              return (element as HTMLImageElement).src;
-            } else if (element.tagName === 'A') {
+            if ((globalThis as any).HTMLImageElement && element instanceof (globalThis as any).HTMLImageElement) {
+              return element.src;
+            } else if ((globalThis as any).HTMLAnchorElement && element instanceof (globalThis as any).HTMLAnchorElement) {
               return {
                 text: element.textContent?.trim(),
-                href: (element as HTMLAnchorElement).href
+                href: element.href
               };
             } else {
               return element.textContent?.trim();
@@ -290,7 +294,7 @@ export class BrowserManager {
    */
   private async initializePuppeteer(options: BrowserOptions): Promise<void> {
     this.puppeteerBrowser = await puppeteer.launch({
-      headless: options.headless !== false ? 'new' : false,
+      headless: options.headless !== false,
       defaultViewport: options.viewport || { width: 1280, height: 720 },
       timeout: options.timeout || 30000
     });
@@ -314,8 +318,11 @@ export class BrowserManager {
    */
   private wrapPlaywrightPage(page: PlaywrightPage): UnifiedPage {
     return {
-      goto: (url: string) => page.goto(url),
-      screenshot: (options?: ScreenshotOptions) => page.screenshot(options as any),
+      goto: (url: string) => page.goto(url).then(() => {}),
+      screenshot: async (options?: ScreenshotOptions) => {
+        const result = await page.screenshot(options as any);
+        return result as unknown as Buffer;
+      },
       evaluate: (fn: Function, ...args: any[]) => page.evaluate(fn as any, ...args),
       click: (selector: string) => page.click(selector),
       type: (selector: string, text: string) => page.type(selector, text),
@@ -335,7 +342,10 @@ export class BrowserManager {
   private wrapPuppeteerPage(page: PuppeteerPage): UnifiedPage {
     return {
       goto: (url: string) => page.goto(url).then(() => {}),
-      screenshot: (options?: ScreenshotOptions) => page.screenshot(options as any),
+      screenshot: async (options?: ScreenshotOptions) => {
+        const result = await page.screenshot(options as any);
+        return result as unknown as Buffer;
+      },
       evaluate: (fn: Function, ...args: any[]) => page.evaluate(fn as any, ...args),
       click: (selector: string) => page.click(selector),
       type: (selector: string, text: string) => page.type(selector, text),
@@ -359,10 +369,14 @@ export class BrowserManager {
     const tiles: Buffer[] = [];
     
     // Get page dimensions
-    const dimensions = await page.evaluate(() => ({
-      width: document.documentElement.scrollWidth,
-      height: document.documentElement.scrollHeight
-    }));
+    const dimensions = await page.evaluate(() => {
+      const doc = (globalThis as any).document;
+      if (!doc) return { width: 1920, height: 1080 };
+      return {
+        width: doc.documentElement.scrollWidth,
+        height: doc.documentElement.scrollHeight
+      };
+    });
     
     const cols = Math.ceil(dimensions.width / tileSize);
     const rows = Math.ceil(dimensions.height / tileSize);

@@ -3,10 +3,10 @@
  * Optimized for Claude Vision API (1072x1072 tiles)
  */
 
-import { chromium, Browser, Page } from 'playwright';
-import * as sharp from 'sharp';
+import { chromium, Browser } from 'playwright';
+import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
-import { ScreenshotOptions, ScreenshotTile } from './types';
+import { ScreenshotOptions, ScreenshotTile } from './types.js';
 
 export class ScreenshotCapture {
   private browser?: Browser;
@@ -67,12 +67,15 @@ export class ScreenshotCapture {
       });
       
       // Get page dimensions
-      const dimensions = await page.evaluate(() => ({
-        width: document.documentElement.scrollWidth,
-        height: document.documentElement.scrollHeight,
-        viewportWidth: window.innerWidth,
-        viewportHeight: window.innerHeight
-      }));
+      const dimensions = await page.evaluate(() => {
+        const doc = (globalThis as any).document;
+        return {
+          width: doc?.documentElement?.scrollWidth || 1920,
+          height: doc?.documentElement?.scrollHeight || 1080,
+          viewportWidth: (globalThis as any).innerWidth || 1920,
+          viewportHeight: (globalThis as any).innerHeight || 1080
+        };
+      });
       
       // Tile the screenshot
       const tiles = await this.tileScreenshot(

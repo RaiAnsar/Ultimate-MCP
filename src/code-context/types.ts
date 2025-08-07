@@ -26,6 +26,11 @@ export interface CodeContextMetadata {
   variables?: string[];
   imports?: string[];
   exports?: string[];
+  parameters?: ParameterInfo[];
+  extends?: string;
+  truncated?: boolean;
+  targetLine?: number;
+  [key: string]: any; // Allow additional properties
 }
 
 export interface ContextWindow {
