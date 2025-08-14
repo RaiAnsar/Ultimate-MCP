@@ -40,6 +40,7 @@ const customFormat = winston.format.printf(({ level, message, timestamp, context
 export class Logger {
   private logger: winston.Logger;
   private context?: string;
+  private static isStdioMode = process.env.MCP_TRANSPORT === 'stdio' || (!process.env.MCP_TRANSPORT && !process.env.ENABLE_SSE && !process.env.ENABLE_HTTP && !process.env.ENABLE_WEBSOCKET);
 
   constructor(context?: string) {
     this.context = context;
@@ -52,7 +53,7 @@ export class Logger {
         winston.format.splat(),
         customFormat
       ),
-      transports: [
+      transports: Logger.isStdioMode ? [] : [
         new winston.transports.Console({
           stderrLevels: ['error', 'warn', 'info', 'debug'],
         }),
@@ -84,6 +85,7 @@ export class Logger {
   }
 
   error(message: string, error?: Error | any): void {
+    if (Logger.isStdioMode) return;
     if (error instanceof Error) {
       this.logger.error(this.formatMessage(message, { error: error.message, stack: error.stack }));
     } else {
@@ -92,18 +94,22 @@ export class Logger {
   }
 
   warn(message: string, metadata?: any): void {
+    if (Logger.isStdioMode) return;
     this.logger.warn(this.formatMessage(message, metadata));
   }
 
   info(message: string, metadata?: any): void {
+    if (Logger.isStdioMode) return;
     this.logger.info(this.formatMessage(message, metadata));
   }
 
   debug(message: string, metadata?: any): void {
+    if (Logger.isStdioMode) return;
     this.logger.debug(this.formatMessage(message, metadata));
   }
 
   log(level: string, message: string, metadata?: any): void {
+    if (Logger.isStdioMode) return;
     this.logger.log(level, this.formatMessage(message, metadata));
   }
 

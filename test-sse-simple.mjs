@@ -31,7 +31,7 @@ app.get('/sse', (req, res) => {
   
   // Store client
   clients.set(clientId, res);
-  console.log(`✅ Client connected: ${clientId}`);
+  console.error(`✅ Client connected: ${clientId}`);
   
   // Send heartbeat every 30 seconds
   const heartbeat = setInterval(() => {
@@ -42,7 +42,7 @@ app.get('/sse', (req, res) => {
   req.on('close', () => {
     clearInterval(heartbeat);
     clients.delete(clientId);
-    console.log(`❌ Client disconnected: ${clientId}`);
+    console.error(`❌ Client disconnected: ${clientId}`);
   });
 });
 
@@ -51,7 +51,7 @@ app.post('/rpc', (req, res) => {
   const clientId = req.headers['x-client-id'];
   const { method, params, id } = req.body;
   
-  console.log(`📨 RPC request from ${clientId}: ${method}`);
+  console.error(`📨 RPC request from ${clientId}: ${method}`);
   
   // Simple echo response for testing
   const response = {
@@ -88,8 +88,8 @@ const PORT = process.env.SSE_PORT || 3000;
 const server = createServer(app);
 
 server.listen(PORT, () => {
-  console.log(`🚀 SSE Test Server running on http://localhost:${PORT}`);
-  console.log(`
+  console.error(`🚀 SSE Test Server running on http://localhost:${PORT}`);
+  console.error(`
 Available endpoints:
 - GET  /sse     - SSE connection endpoint
 - POST /rpc     - RPC endpoint (requires X-Client-ID header)
@@ -101,13 +101,13 @@ Press Ctrl+C to stop the server.
 
 // Graceful shutdown
 process.on('SIGINT', () => {
-  console.log('\n👋 Shutting down server...');
+  console.error('\n👋 Shutting down server...');
   clients.forEach((client, id) => {
     client.end();
-    console.log(`Closed connection: ${id}`);
+    console.error(`Closed connection: ${id}`);
   });
   server.close(() => {
-    console.log('Server closed.');
+    console.error('Server closed.');
     process.exit(0);
   });
 });

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { execSync } from 'child_process';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import { join, dirname } from 'path';
-import { homedir, platform } from 'os';
+import { dirname } from 'path';
+import { getPlatform, Platform, joinPath, getHomeDir, executeCommand } from './utils/platform-utils.js';
 
 // Command line handling for installation
 const args = process.argv.slice(2);
@@ -27,16 +27,16 @@ if (command === 'install') {
 }
 
 async function install(targetPlatform?: string) {
-  console.log('🚀 Ultimate MCP Server Installer');
-  console.log('================================\n');
+  console.error('🚀 Ultimate MCP Server Installer');
+  console.error('================================\n');
 
   if (!targetPlatform) {
-    console.log('Please specify a platform:');
-    console.log('  npx ultimate-mcp-server install claude-desktop');
-    console.log('  npx ultimate-mcp-server install claude-code');
-    console.log('  npx ultimate-mcp-server install cursor');
-    console.log('  npx ultimate-mcp-server install gemini');
-    console.log('  npx ultimate-mcp-server install vscode');
+    console.error('Please specify a platform:');
+    console.error('  npx ultimate-mcp-server install claude-desktop');
+    console.error('  npx ultimate-mcp-server install claude-code');
+    console.error('  npx ultimate-mcp-server install cursor');
+    console.error('  npx ultimate-mcp-server install gemini');
+    console.error('  npx ultimate-mcp-server install vscode');
     return;
   }
 
@@ -66,8 +66,8 @@ async function install(targetPlatform?: string) {
 }
 
 async function promptForApiKey(): Promise<string> {
-  console.log('🔑 Enter your OpenRouter API key:');
-  console.log('   (Get one at https://openrouter.ai/keys)');
+  console.error('🔑 Enter your OpenRouter API key:');
+  console.error('   (Get one at https://openrouter.ai/keys)');
   
   // Simple implementation - in production use a proper prompt library
   return new Promise((resolve) => {
@@ -78,7 +78,7 @@ async function promptForApiKey(): Promise<string> {
 }
 
 async function installClaudeDesktop(apiKey: string) {
-  console.log('📦 Installing for Claude Desktop...\n');
+  console.error('📦 Installing for Claude Desktop...\n');
 
   const configPath = getClaudeConfigPath();
   const config = loadOrCreateConfig(configPath);
@@ -99,23 +99,23 @@ async function installClaudeDesktop(apiKey: string) {
   // Save config
   saveConfig(configPath, config);
 
-  console.log('✅ Installation complete!');
-  console.log('\n🎯 Next steps:');
-  console.log('1. Restart Claude Desktop');
-  console.log('2. Try: /ask "Explain async/await in JavaScript"');
-  console.log('3. Or: /orchestrate "Design a REST API" --strategy debate');
+  console.error('✅ Installation complete!');
+  console.error('\n🎯 Next steps:');
+  console.error('1. Restart Claude Desktop');
+  console.error('2. Try: /ask "Explain async/await in JavaScript"');
+  console.error('3. Or: /orchestrate "Design a REST API" --strategy debate');
 }
 
 async function installClaudeCode(apiKey: string) {
-  console.log('📦 Installing for Claude Code...\n');
+  console.error('📦 Installing for Claude Code...\n');
 
   try {
     execSync(`claude mcp add ultimate npx ultimate-mcp-server -e OPENROUTER_API_KEY="${apiKey}" --scope user`, {
       stdio: 'inherit'
     });
     
-    console.log('\n✅ Installation complete!');
-    console.log('Restart Claude Code to use Ultimate MCP');
+    console.error('\n✅ Installation complete!');
+    console.error('Restart Claude Code to use Ultimate MCP');
   } catch (error) {
     console.error('❌ Installation failed. Make sure Claude Code CLI is installed');
     process.exit(1);
@@ -123,28 +123,28 @@ async function installClaudeCode(apiKey: string) {
 }
 
 async function installCursor(apiKey: string) {
-  console.log('📦 Installing for Cursor...\n');
+  console.error('📦 Installing for Cursor...\n');
   
   try {
     execSync(`cursor mcp install ultimate-mcp-server --env OPENROUTER_API_KEY="${apiKey}"`, {
       stdio: 'inherit'
     });
     
-    console.log('\n✅ Installation complete!');
-    console.log('Restart Cursor to use Ultimate MCP');
+    console.error('\n✅ Installation complete!');
+    console.error('Restart Cursor to use Ultimate MCP');
   } catch (error) {
     console.error('❌ Installation failed. Manual instructions:');
-    console.log('1. Open Cursor Settings (Cmd+, or Ctrl+,)');
-    console.log('2. Search for "MCP Servers"');
-    console.log('3. Add server with:');
-    console.log('   Name: ultimate');
-    console.log('   Command: npx ultimate-mcp-server');
-    console.log(`   Env: OPENROUTER_API_KEY=${apiKey}`);
+    console.error('1. Open Cursor Settings (Cmd+, or Ctrl+,)');
+    console.error('2. Search for "MCP Servers"');
+    console.error('3. Add server with:');
+    console.error('   Name: ultimate');
+    console.error('   Command: npx ultimate-mcp-server');
+    console.error(`   Env: OPENROUTER_API_KEY=${apiKey}`);
   }
 }
 
 async function installGemini(apiKey: string) {
-  console.log('📦 Setting up for Google AI Studio (Gemini)...\n');
+  console.error('📦 Setting up for Google AI Studio (Gemini)...\n');
 
   const config = {
     mcpServers: {
@@ -163,21 +163,21 @@ async function installGemini(apiKey: string) {
   const configPath = 'gemini-mcp-config.json';
   writeFileSync(configPath, JSON.stringify(config, null, 2));
 
-  console.log('✅ Configuration file created: gemini-mcp-config.json');
-  console.log('\n🎯 Next steps:');
-  console.log('1. Open Google AI Studio');
-  console.log('2. Go to Settings → Extensions');
-  console.log('3. Click "Add MCP Server"');
-  console.log(`4. Upload ${configPath}`);
-  console.log('5. Enable the Ultimate MCP extension');
+  console.error('✅ Configuration file created: gemini-mcp-config.json');
+  console.error('\n🎯 Next steps:');
+  console.error('1. Open Google AI Studio');
+  console.error('2. Go to Settings → Extensions');
+  console.error('3. Click "Add MCP Server"');
+  console.error(`4. Upload ${configPath}`);
+  console.error('5. Enable the Ultimate MCP extension');
 }
 
 async function installVSCode(_apiKey: string) {
-  console.log('📦 Installing for VS Code...\n');
-  console.log('Choose your extension:');
-  console.log('1. Continue extension');
-  console.log('2. Cline extension');
-  console.log('\nVisit: https://github.com/RaiAnsar/Ultimate-MCP/blob/main/PLATFORM_INSTALLATION.md#5-vs-code-via-continue-extension');
+  console.error('📦 Installing for VS Code...\n');
+  console.error('Choose your extension:');
+  console.error('1. Continue extension');
+  console.error('2. Cline extension');
+  console.error('\nVisit: https://github.com/RaiAnsar/Ultimate-MCP/blob/main/PLATFORM_INSTALLATION.md#5-vs-code-via-continue-extension');
 }
 
 function addToClaude(apiKey: string) {
@@ -197,19 +197,19 @@ function addToClaude(apiKey: string) {
   };
 
   saveConfig(configPath, config);
-  console.log('✅ Ultimate MCP added to Claude Desktop!');
-  console.log('Please restart Claude Desktop to use it.');
+  console.error('✅ Ultimate MCP added to Claude Desktop!');
+  console.error('Please restart Claude Desktop to use it.');
 }
 
 function getClaudeConfigPath(): string {
-  const homeDir = homedir();
-  switch (platform()) {
-    case 'darwin':
-      return join(homeDir, 'Library', 'Application Support', 'Claude', 'claude.json');
-    case 'win32':
-      return join(process.env.APPDATA || '', 'Claude', 'claude.json');
+  const homeDir = getHomeDir();
+  switch (getPlatform()) {
+    case Platform.MAC:
+      return joinPath(homeDir, 'Library', 'Application Support', 'Claude', 'claude.json');
+    case Platform.WINDOWS:
+      return joinPath(process.env.APPDATA || '', 'Claude', 'claude.json');
     default:
-      return join(homeDir, '.config', 'claude', 'claude.json');
+      return joinPath(homeDir, '.config', 'claude', 'claude.json');
   }
 }
 

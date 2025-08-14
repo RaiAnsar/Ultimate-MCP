@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-console.log('🌳 Tree-shaking Ultimate MCP for minimal build...\n');
+console.error('🌳 Tree-shaking Ultimate MCP for minimal build...\n');
 
 const srcDir = path.join(__dirname, '..', 'src');
 const distMinimalDir = path.join(__dirname, '..', 'dist-minimal');
@@ -51,16 +51,16 @@ class TreeShaker {
   }
   
   async shake() {
-    console.log('🔍 Analyzing dependencies...');
+    console.error('🔍 Analyzing dependencies...');
     await this.analyzeDependencies();
     
-    console.log('\n✂️ Removing unused code...');
+    console.error('\n✂️ Removing unused code...');
     await this.removeUnusedCode();
     
-    console.log('\n📦 Creating minimal bundle...');
+    console.error('\n📦 Creating minimal bundle...');
     await this.createMinimalBundle();
     
-    console.log('\n📊 Generating size report...');
+    console.error('\n📊 Generating size report...');
     await this.generateSizeReport();
   }
   
@@ -69,7 +69,7 @@ class TreeShaker {
     try {
       execSync('npm install --no-save @rollup/plugin-typescript rollup', { stdio: 'pipe' });
     } catch {
-      console.log('  Using existing rollup installation...');
+      console.error('  Using existing rollup installation...');
     }
     
     // Create rollup config for analysis
@@ -112,7 +112,7 @@ export default {
     // Run rollup
     try {
       execSync('npx rollup -c rollup.config.mjs', { stdio: 'inherit' });
-      console.log('  ✅ Dependency analysis complete');
+      console.error('  ✅ Dependency analysis complete');
     } catch (error) {
       console.warn('  ⚠️ Rollup analysis failed, using fallback method');
       await this.fallbackAnalysis();
@@ -211,7 +211,7 @@ export default {
       filesToKeep.add(path.join(srcDir, `transports/${transport}.ts`));
     });
     
-    console.log(`  ✅ Identified ${filesToKeep.size} core files to keep`);
+    console.error(`  ✅ Identified ${filesToKeep.size} core files to keep`);
   }
   
   async createMinimalBundle() {
@@ -275,7 +275,7 @@ npx ultimate-mcp-server
 `;
     
     fs.writeFileSync(path.join(distMinimalDir, 'README.md'), minimalReadme);
-    console.log('  ✅ Created minimal bundle structure');
+    console.error('  ✅ Created minimal bundle structure');
   }
   
   async generateSizeReport() {
@@ -330,7 +330,7 @@ To use minimal build:
   npm install ultimate-mcp-server-minimal
 `;
     
-    console.log(report);
+    console.error(report);
     
     fs.writeFileSync(
       path.join(__dirname, '..', 'minimal-build-report.txt'),
@@ -345,9 +345,9 @@ async function main() {
     const shaker = new TreeShaker();
     await shaker.shake();
     
-    console.log('\n✨ Tree-shaking complete!');
-    console.log('\nMinimal build created in: dist-minimal/');
-    console.log('To publish: cd dist-minimal && npm publish\n');
+    console.error('\n✨ Tree-shaking complete!');
+    console.error('\nMinimal build created in: dist-minimal/');
+    console.error('To publish: cd dist-minimal && npm publish\n');
   } catch (error) {
     console.error('❌ Tree-shaking failed:', error);
     process.exit(1);

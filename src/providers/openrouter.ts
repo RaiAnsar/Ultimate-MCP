@@ -413,13 +413,27 @@ export class OpenRouterProvider implements AIProvider {
     throw lastError;
   }
 
-  async *stream(prompt: string, options?: CompletionOptions): AsyncIterableIterator<string> {
+  async completeWithContext(messages: Message[], options?: CompletionOptions): Promise<string> {
+    const result = await this.client.chat.completions.create({
+      model: options?.model || MODELS.GPT_4O,
+      messages: messages.map(m => ({
+        role: m.role as "system" | "user" | "assistant",
+        content: m.content
+      })),
+      temperature: options?.temperature ?? 0.7,
+      max_tokens: options?.maxTokens,
+    });
+
+    return result.choices[0]?.message?.content || "";
+  }
+
+  async *stream(messages: Message[], options?: CompletionOptions): AsyncGenerator<string> {
     const stream = await this.client.chat.completions.create({
       model: options?.model || MODELS.GPT_4O,
-      messages: [
-        ...(options?.systemPrompt ? [{ role: "system" as const, content: options.systemPrompt }] : []),
-        { role: "user", content: prompt },
-      ],
+      messages: messages.map(m => ({
+        role: m.role as "system" | "user" | "assistant",
+        content: m.content
+      })),
       temperature: options?.temperature ?? 0.7,
       max_tokens: options?.maxTokens,
       stream: true,

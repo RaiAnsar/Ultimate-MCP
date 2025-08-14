@@ -60,9 +60,10 @@ export class ScreenshotCapture {
       }
       
       // Take screenshot
+      const format = (options.format === 'webp' ? 'png' : options.format) || 'png';
       const screenshotBuffer = await page.screenshot({
         fullPage: options.fullPage || false,
-        type: options.format || 'png',
+        type: format as 'png' | 'jpeg',
         quality: options.quality
       });
       
@@ -190,8 +191,9 @@ export class ScreenshotCapture {
       await element.scrollIntoViewIfNeeded();
       
       // Take screenshot of element
+      const format = (options?.format === 'webp' ? 'png' : options?.format) || 'png';
       const screenshotBuffer = await element.screenshot({
-        type: options?.format || 'png',
+        type: format as 'png' | 'jpeg',
         quality: options?.quality
       });
       

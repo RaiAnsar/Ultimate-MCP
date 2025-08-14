@@ -353,7 +353,7 @@ function selectModelForCodebase(totalSize: number): string {
   if (totalSize > 50 * 1024 * 1024) { // > 50MB
     return MODELS.GEMINI_PRO; // 2M token context window
   } else if (totalSize > 10 * 1024 * 1024) { // > 10MB
-    return MODELS.GEMINI_FLASH; // 1M token context window
+    return MODELS.GEMINI_2_FLASH; // 1M token context window
   } else {
     return MODELS.GPT_4O_MINI;
   }

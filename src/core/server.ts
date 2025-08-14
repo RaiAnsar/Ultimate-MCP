@@ -40,7 +40,7 @@ export class UltimateMCPServer {
   constructor(config: ServerConfig = {}) {
     this.config = {
       name: config.name || "ultimate-mcp-server",
-      version: config.version || "2.0.0",
+      version: config.version || "2.0.9",
       transports: config.transports || [{ type: TransportType.STDIO }],
       capabilities: config.capabilities || {},
     };
@@ -70,33 +70,59 @@ export class UltimateMCPServer {
 
     this.server = new Server(
       {
-        name: this.config.name,
-        version: this.config.version,
+        name: this.config.name!,
+        version: this.config.version!,
       },
-      mcpCapabilities
+      {
+        capabilities: mcpCapabilities
+      }
     );
 
     this.setupHandlers();
-    this.logger.info(`${this.config.name} v${this.config.version} initialized`);
+    // Only log if not in pure stdio mode
+    const isStdioOnly = this.config.transports?.length === 1 && this.config.transports[0].type === TransportType.STDIO;
+    if (!isStdioOnly) {
+      this.logger.info(`${this.config.name} v${this.config.version} initialized`);
+    }
   }
 
   private setupHandlers(): void {
     // Tool handlers
     if (this.capabilities.tools) {
       this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
-        tools: this.toolRegistry.listTools(),
+        tools: await this.toolRegistry.listTools(),
       }));
 
       this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-        this.metrics.recordToolCall(request.params.name);
-        return this.toolRegistry.callTool(request.params.name, request.params.arguments);
+        const startTime = Date.now();
+        try {
+          const result = await this.toolRegistry.executeTool(request.params.name, request.params.arguments);
+          this.metrics.recordToolCall(request.params.name, Date.now() - startTime, true);
+          
+          // MCP expects tool results to be wrapped in a content array
+          // Check if result is already in the correct format
+          if (result && typeof result === 'object' && 'content' in result && Array.isArray(result.content)) {
+            return result;
+          }
+          
+          // Wrap the result in the expected MCP format
+          return {
+            content: [{
+              type: "text",
+              text: typeof result === 'string' ? result : JSON.stringify(result, null, 2)
+            }]
+          };
+        } catch (error) {
+          this.metrics.recordToolCall(request.params.name, Date.now() - startTime, false);
+          throw error;
+        }
       });
     }
 
     // Resource handlers
     if (this.capabilities.resources) {
       this.server.setRequestHandler(ListResourcesRequestSchema, async () => ({
-        resources: this.resourceRegistry.listResources(),
+        resources: await this.resourceRegistry.listResources(),
       }));
 
       this.server.setRequestHandler(ReadResourceRequestSchema, async (request) => ({
@@ -107,7 +133,7 @@ export class UltimateMCPServer {
     // Prompt handlers
     if (this.capabilities.prompts) {
       this.server.setRequestHandler(ListPromptsRequestSchema, async () => ({
-        prompts: this.promptRegistry.listPrompts(),
+        prompts: await this.promptRegistry.listPrompts(),
       }));
 
       this.server.setRequestHandler(GetPromptRequestSchema, async (request) => ({
@@ -118,32 +144,26 @@ export class UltimateMCPServer {
       }));
     }
 
-    // Custom request handler for extended functionality
-    this.server.handleRequest = async (request: any) => {
-      this.logger.debug(`Handling request: ${request.method}`);
-      
-      // Add session context if available
-      if ((request as any).sessionContext) {
-        this.contextManager.setContext((request as any).sessionContext);
-      }
-
-      // Process the request through the standard MCP server
-      const response = await this.server.handleRequest(request);
-      
-      // Update session context if needed
-      if ((request as any).sessionContext) {
-        (request as any).sessionContext = this.contextManager.getContext();
-      }
-
-      return response;
-    };
+    // Context management can be handled differently
+    // We'll manage context through the tool calls themselves
   }
 
   async start(): Promise<void> {
-    if (this.config.transports && this.config.transports.length > 0) {
+    // Check if we're in pure stdio mode
+    const isStdioOnly = 
+      !this.config.transports || 
+      this.config.transports.length === 0 || 
+      (this.config.transports.length === 1 && this.config.transports[0].type === TransportType.STDIO);
+    
+    if (isStdioOnly) {
+      // Use direct stdio transport for simplicity and compatibility
+      const transport = new StdioServerTransport();
+      await this.server.connect(transport);
+      // No logging in pure stdio mode - it interferes with the protocol
+    } else {
       // Multi-transport mode
       this.transportManager = new TransportManager(this.server, {
-        transports: this.config.transports,
+        transports: this.config.transports!,
       });
       
       await this.transportManager.initialize();
@@ -151,34 +171,42 @@ export class UltimateMCPServer {
       
       const activeTransports = this.transportManager.getActiveTransports();
       this.logger.info(`Server started with transports: ${activeTransports.join(", ")}`);
-    } else {
-      // Default stdio mode for backward compatibility
-      const transport = new StdioServerTransport();
-      await this.server.connect(transport);
-      this.logger.info("Server started with STDIO transport");
     }
 
-    // Start metrics collection
-    this.metrics.startCollection();
+    // Metrics are collected automatically on each call
   }
 
   async stop(): Promise<void> {
-    this.logger.info("Shutting down server...");
+    const isStdioOnly = this.config.transports?.length === 1 && this.config.transports[0].type === TransportType.STDIO;
+    if (!isStdioOnly) {
+      this.logger.info("Shutting down server...");
+    }
     
-    // Stop metrics collection
-    this.metrics.stopCollection();
+    // Metrics collection stops automatically
 
     // Stop all transports
     if (this.transportManager) {
       await this.transportManager.stop();
     }
 
-    // Clear registries
-    this.toolRegistry.clear();
-    this.resourceRegistry.clear();
-    this.promptRegistry.clear();
+    // Registries will be garbage collected
     
-    this.logger.info("Server stopped");
+    if (!isStdioOnly) {
+      this.logger.info("Server stopped");
+    }
+  }
+
+  // Registry access methods
+  registerTool(tool: any): void {
+    this.toolRegistry.register(tool);
+  }
+
+  registerPrompt(prompt: any): void {
+    this.promptRegistry.register(prompt);
+  }
+
+  registerResource(resource: any): void {
+    this.resourceRegistry.register(resource);
   }
 
   getToolRegistry(): ToolRegistry {
@@ -215,7 +243,7 @@ export class UltimateMCPServer {
   static createForPlatform(platform: string): UltimateMCPServer {
     let config: ServerConfig = {
       name: "ultimate-mcp-server",
-      version: "2.0.0",
+      version: "2.0.9",
     };
 
     switch (platform) {

@@ -15,7 +15,9 @@ import {
   ContentHistory,
   ContentManagerStats,
   ContentStatus,
-  ContentVersion
+  ContentVersion,
+  ContentPagination,
+  ContentChange
 } from '../types.js';
 import { Logger } from '../../utils/logger.js';
 
@@ -230,7 +232,7 @@ export class MemoryContentStorage extends BaseContentStorage {
             field,
             oldValue,
             newValue,
-            action: oldValue === undefined ? 'added' : 'modified' as const
+            action: (oldValue === undefined ? 'added' : 'modified') as 'added' | 'modified'
           });
         }
       }

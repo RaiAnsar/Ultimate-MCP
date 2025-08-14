@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 import axios from 'axios';
 
 // Re-export for compatibility
-export { EmbeddingProvider } from './types.js';
+export type { EmbeddingProvider } from './types.js';
 
 export abstract class BaseEmbeddingProvider implements EmbeddingProvider {
   abstract name: string;

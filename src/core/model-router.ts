@@ -84,7 +84,7 @@ export class ModelRouter {
     });
     
     // DeepSeek Coder
-    this.modelProfiles.set(MODELS.DEEPSEEK_CODER, {
+    this.modelProfiles.set(MODELS.DEEPSEEK_CODER_V2, {
       strengths: ['code-completion', 'debugging', 'code-understanding'],
       weaknesses: ['general-reasoning', 'non-code-tasks'],
       bestFor: ['code-generation', 'bug-fixing', 'code-review'],
@@ -102,7 +102,7 @@ export class ModelRouter {
     });
     
     // Qwen Coder
-    this.modelProfiles.set(MODELS.QWEN_CODER_32B, {
+    this.modelProfiles.set(MODELS.QWEN_2_5_CODER_32B, {
       strengths: ['code-generation', 'multi-language', 'efficiency'],
       weaknesses: ['english-nuance', 'creative-tasks'],
       bestFor: ['algorithm-implementation', 'code-translation', 'technical-docs'],
@@ -220,10 +220,11 @@ export class ModelRouter {
       const perfMetrics = this.performanceMonitor.getModelMetrics(model);
       let perfScore = profile.performance.successRate / 100;
       
-      if (perfMetrics) {
+      if (perfMetrics && typeof perfMetrics === 'object' && 'requests' in perfMetrics) {
         // Use actual performance data if available
-        perfScore = Math.min(perfMetrics.requests > 10 ? 
-          (perfMetrics.requests - perfMetrics.errors) / perfMetrics.requests : 
+        const metrics = perfMetrics as any;
+        perfScore = Math.min(metrics.requests > 10 ? 
+          (metrics.requests - metrics.errors) / metrics.requests : 
           perfScore, 1.0);
       }
       
@@ -279,7 +280,7 @@ export class ModelRouter {
     }
     
     // Generate reasoning
-    const reasoning = this.generateRoutingReasoning(topModel, task, constraints);
+    let reasoning = this.generateRoutingReasoning(topModel, task, constraints);
     
     // Estimate cost and latency
     const estimatedCost = this.estimateCost(topModel.model, task.estimatedTokens);
@@ -391,7 +392,7 @@ export class ModelRouter {
       [MODELS.CLAUDE_3_OPUS]: 0.075,
       [MODELS.CLAUDE_3_HAIKU]: 0.00125,
       [MODELS.GEMINI_2_FLASH]: 0.00003,
-      [MODELS.DEEPSEEK_CODER]: 0.00028
+      [MODELS.DEEPSEEK_CODER_V2]: 0.00028
     };
     
     return (tokens / 1000) * (costMap[model] || 0.001);

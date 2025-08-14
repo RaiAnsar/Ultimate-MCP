@@ -9,9 +9,10 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { ToolDefinition } from '../types/index.js';
 
 export interface LazyToolDefinition extends Omit<ToolDefinition, 'handler'> {
-  loader: () => Promise<ToolDefinition>;
+  loader: () => Promise<ToolDefinition | Tool | any>;
   loaded?: boolean;
   implementation?: ToolDefinition;
+  handler?: (args: any) => Promise<any>;
 }
 
 export class LazyToolRegistry {
@@ -85,7 +86,7 @@ export class LazyToolRegistry {
     }
     
     await this.ensureLoaded(name);
-    return tool.handler; // Return the handler function directly
+    return tool.handler || tool.implementation?.handler; // Return the handler function
   }
   
   /**
@@ -122,7 +123,7 @@ export class LazyToolRegistry {
         required: ['documents']
       },
       tags: ['rag', 'indexing'],
-      loader: () => import('../tools/rag-tools.js').then(m => m.ragTools[0])
+      loader: () => import('../tools/rag-tools.js').then(m => m.ragIngestDocument)
     });
     
     // UI Understanding tools
@@ -138,7 +139,7 @@ export class LazyToolRegistry {
         required: ['source']
       },
       tags: ['ui', 'design', 'analysis'],
-      loader: () => import('../tools/ui-understanding-tools.js').then(m => m.uiUnderstandingTools[0])
+      loader: () => import('../tools/ui-understanding-tools.js').then(m => m.analyze_ui_design) as Promise<any>
     });
     
     // Large Context tools
@@ -155,7 +156,7 @@ export class LazyToolRegistry {
         required: ['rootDir', 'query']
       },
       tags: ['codebase', 'analysis', 'large-context'],
-      loader: () => import('../tools/large-context-tools.js').then(m => m.largeContextTools[0])
+      loader: () => import('../tools/large-context-tools.js').then(m => m.analyze_large_codebase) as Promise<any>
     });
     
     // Add more tools as needed...
@@ -190,10 +191,32 @@ export class LazyToolRegistry {
    */
   private async loadTool(tool: LazyToolDefinition): Promise<void> {
     try {
-      const implementation = await tool.loader();
-      tool.implementation = implementation;
+      const loaded = await tool.loader();
+      
+      // Convert MCP Tool to ToolDefinition if needed
+      if (loaded && typeof loaded === 'object' && 'execute' in loaded && !('handler' in loaded)) {
+        // It's an MCP Tool, wrap it
+        const mcpTool = loaded as Tool;
+        tool.implementation = {
+          name: mcpTool.name || tool.name,
+          description: mcpTool.description || tool.description,
+          inputSchema: mcpTool.inputSchema || tool.inputSchema,
+          handler: async (args: any) => {
+            const result = await (mcpTool as any).execute(args);
+            return result;
+          },
+          tags: tool.tags
+        };
+        tool.handler = tool.implementation.handler;
+      } else if (loaded && typeof loaded === 'object' && 'handler' in loaded) {
+        // It's already a ToolDefinition
+        tool.implementation = loaded as ToolDefinition;
+        tool.handler = loaded.handler;
+      } else {
+        throw new Error(`Invalid tool implementation for ${tool.name}`);
+      }
+      
       tool.loaded = true;
-      tool.handler = implementation.handler;
       this.loadedCount++;
     } catch (error) {
       console.error(`Failed to load tool ${tool.name}:`, error);
@@ -205,14 +228,35 @@ export class LazyToolRegistry {
    * Get all registered tools (immediate)
    */
   getAllTools(): ToolDefinition[] {
-    return Array.from(this.tools.values());
+    return Array.from(this.tools.values()).map(tool => ({
+      name: tool.name,
+      description: tool.description,
+      inputSchema: tool.inputSchema,
+      tags: tool.tags,
+      handler: tool.handler || (async (args: any) => {
+        // Load implementation on first use
+        return this.getImplementation(tool.name).then(impl => impl(args));
+      })
+    }));
   }
   
   /**
    * Get a specific tool
    */
   getTool(name: string): ToolDefinition | undefined {
-    return this.tools.get(name);
+    const tool = this.tools.get(name);
+    if (!tool) return undefined;
+    
+    return {
+      name: tool.name,
+      description: tool.description,
+      inputSchema: tool.inputSchema,
+      tags: tool.tags,
+      handler: tool.handler || (async (args: any) => {
+        // Load implementation on first use
+        return this.getImplementation(tool.name).then(impl => impl(args));
+      })
+    };
   }
   
   /**

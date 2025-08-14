@@ -21,21 +21,23 @@ export class WebSocketTransport extends BaseTransport {
   private app: Express;
   private clients: Map<string, WSClient> = new Map();
   private pingInterval: NodeJS.Timeout | null = null;
+  private _isRunning: boolean = false;
 
-  constructor(server: Server, config: TransportConfig = {}) {
-    super(server, config);
-    this.type = TransportType.WEBSOCKET;
-    this.app = express();
-    
-    // Default configuration
-    this.config = {
-      port: 3002,
-      host: 'localhost',
-      cors: { origin: '*', credentials: true },
-      pingInterval: 30000,
-      auth: { type: 'none' },
-      ...config
+  constructor(server: Server, config: Partial<TransportConfig> = {}) {
+    const fullConfig: TransportConfig = {
+      type: TransportType.WEBSOCKET,
+      port: config.port || 3002,
+      host: config.host || 'localhost',
+      cors: config.cors || { origin: '*', credentials: true },
+      auth: config.auth || { type: 'none' }
     };
+    super(server, fullConfig);
+    this.app = express();
+    this.config = fullConfig;
+  }
+  
+  isRunning(): boolean {
+    return this._isRunning;
   }
 
   async initialize(): Promise<void> {
@@ -95,7 +97,7 @@ export class WebSocketTransport extends BaseTransport {
       };
       
       this.clients.set(clientId, client);
-      console.log(`WebSocket client connected: ${clientId}`);
+      console.error(`WebSocket client connected: ${clientId}`);
       
       // Send welcome message
       this.sendMessage(client, {
@@ -117,7 +119,7 @@ export class WebSocketTransport extends BaseTransport {
       // Setup close handler
       ws.on('close', (code, reason) => {
         this.clients.delete(clientId);
-        console.log(`WebSocket client disconnected: ${clientId} (${code} - ${reason})`);
+        console.error(`WebSocket client disconnected: ${clientId} (${code} - ${reason})`);
       });
       
       // Setup pong handler
@@ -232,7 +234,7 @@ export class WebSocketTransport extends BaseTransport {
 
       this.httpServer.listen(this.config.port, this.config.host, () => {
         this._isRunning = true;
-        console.log(`WebSocket transport listening on ws://${this.config.host}:${this.config.port}/ws`);
+        console.error(`WebSocket transport listening on ws://${this.config.host}:${this.config.port}/ws`);
         
         // Start ping interval
         this.pingInterval = setInterval(() => {
@@ -281,7 +283,7 @@ export class WebSocketTransport extends BaseTransport {
     
     this.clients.forEach((client, id) => {
       if (now - client.lastActivity > timeout) {
-        console.log(`Closing inactive WebSocket client: ${id}`);
+        console.error(`Closing inactive WebSocket client: ${id}`);
         client.ws.close(1000, 'Ping timeout');
         this.clients.delete(id);
       } else {

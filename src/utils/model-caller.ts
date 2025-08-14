@@ -55,22 +55,23 @@ export async function callModel(
     
     // Route to appropriate provider based on model name
     if (model.startsWith('anthropic/') || model.startsWith('claude')) {
-      const response = await anthropicProvider.complete({
+      // Convert messages to prompt if it's the old format
+      const prompt = messages.map(m => `${m.role}: ${m.content}`).join('\n');
+      const response = await anthropicProvider.complete(prompt, {
         model: model.replace('anthropic/', ''),
-        messages,
         temperature,
         maxTokens
       });
-      return response.content;
+      return response;
     } else {
       // Default to OpenRouter for all other models
-      const response = await openrouterProvider.complete({
+      const prompt = messages.map(m => `${m.role}: ${m.content}`).join('\n');
+      const response = await openrouterProvider.complete(prompt, {
         model,
-        messages,
         temperature,
         maxTokens
       });
-      return response.content;
+      return response;
     }
   } catch (error) {
     logger.error(`Failed to call model ${model}:`, error);

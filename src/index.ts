@@ -74,7 +74,6 @@ function parseTransports(): TransportConfig[] {
         type: process.env.AUTH_TYPE as any || "none",
         apiKey: process.env.AUTH_API_KEY,
       },
-      pingInterval: parseInt(process.env.WEBSOCKET_PING_INTERVAL || "30000"),
     });
   }
   
@@ -108,17 +107,22 @@ function parseTransports(): TransportConfig[] {
 }
 
 async function main() {
+  // Parse transport configuration
+  const transports = parseTransports();
+  const isStdio = transports.some(t => t.type === TransportType.STDIO);
+  
   try {
-    logger.info("Starting Ultimate MCP Server...");
-
-    // Parse transport configuration
-    const transports = parseTransports();
-    logger.info(`Configured transports: ${transports.map(t => t.type).join(", ")}`);
+    
+    // Only log to stderr if not using stdio transport
+    if (!isStdio) {
+      logger.info("Starting Ultimate MCP Server...");
+      logger.info(`Configured transports: ${transports.map(t => t.type).join(", ")}`);
+    }
 
     // Create server instance with transport configuration
     const server = new UltimateMCPServer({
       name: "ultimate-mcp-server",
-      version: "2.0.0",
+      version: "2.0.9",
       transports,
     });
 
@@ -137,29 +141,63 @@ async function main() {
     // Start the server
     await server.start();
 
-    // Log transport status
+    // Log transport status only if not stdio
     const transportStatus = server.getTransportStatus();
-    if (transportStatus) {
+    if (transportStatus && !isStdio) {
       logger.info(`Active transports: ${transportStatus.active.join(", ")}`);
     }
 
     // Handle graceful shutdown
     process.on("SIGINT", async () => {
-      logger.info("Shutting down gracefully...");
+      if (!isStdio) {
+        logger.info("Shutting down gracefully...");
+      }
       await server.stop();
       process.exit(0);
     });
 
     process.on("SIGTERM", async () => {
-      logger.info("Shutting down gracefully...");
+      if (!isStdio) {
+        logger.info("Shutting down gracefully...");
+      }
       await server.stop();
       process.exit(0);
     });
 
-    // Keep process alive
+    // Keep process alive for stdio
+    // Note: stdio transport ALSO needs stdin.resume() to keep the process alive
+    // This is NOT just for keeping the process alive but for enabling stdin
     process.stdin.resume();
+    
+    // Handle stdin closure (important for MCP clients)
+    process.stdin.on('end', () => {
+      if (!isStdio) {
+        logger.info("stdin closed, shutting down...");
+      }
+      process.exit(0);
+    });
+    
+    process.stdin.on('close', () => {
+      if (!isStdio) {
+        logger.info("stdin closed, shutting down...");
+      }
+      process.exit(0);
+    });
+    
+    // If running in stdio mode and connected to a TTY (terminal), show help
+    if (isStdio && process.stdin.isTTY) {
+      console.error("Ultimate MCP Server v2.0.9 - Running in stdio mode");
+      console.error("Waiting for MCP protocol messages on stdin...");
+      console.error("\nThis server is designed to be used with MCP clients like:");
+      console.error("  - Claude Desktop/Code: claude mcp add ultimate npx ultimate-mcp-server");
+      console.error("  - Cursor/Windsurf: Add to MCP settings");
+      console.error("  - Direct test: echo '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{}}' | npx ultimate-mcp-server");
+      console.error("\nPress Ctrl+C to exit");
+    }
   } catch (error) {
-    logger.error("Failed to start server", error);
+    if (!isStdio) {
+      logger.error("Failed to start server", error);
+    }
     process.exit(1);
   }
 }
@@ -167,7 +205,7 @@ async function main() {
 // Handle CLI arguments
 const args = process.argv.slice(2);
 if (args.includes("--help") || args.includes("-h")) {
-  console.log(`
+  console.error(`
 Ultimate MCP Server v2.0
 
 Usage: ultimate-mcp-server [options]
@@ -196,7 +234,7 @@ Environment Variables:
 }
 
 if (args.includes("--version") || args.includes("-v")) {
-  console.log("Ultimate MCP Server v2.0.0");
+  console.error("Ultimate MCP Server v2.0.9");
   process.exit(0);
 }
 

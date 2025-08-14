@@ -47,7 +47,7 @@ export class CompatibilityTester {
     const results: CompatibilityTestResult[] = [];
     
     for (const platform of Object.values(SUPPORTED_PLATFORMS)) {
-      console.log(`Testing compatibility with ${platform}...`);
+      console.error(`Testing compatibility with ${platform}...`);
       const result = await this.testPlatform(platform);
       results.push(result);
       this.results.set(platform, result);
@@ -131,7 +131,7 @@ export class CompatibilityTester {
                       result.tests.errorHandling;
       
     } catch (error) {
-      result.errors.push(`Unexpected error: ${error.message}`);
+      result.errors.push(`Unexpected error: ${(error as Error).message}`);
     }
     
     return result;
@@ -145,7 +145,7 @@ export class CompatibilityTester {
       }
       return true;
     } catch (error) {
-      result.errors.push(`Initialization failed: ${error.message}`);
+      result.errors.push(`Initialization failed: ${(error as Error).message}`);
       return false;
     }
   }
@@ -187,7 +187,7 @@ export class CompatibilityTester {
       
       return true;
     } catch (error) {
-      result.errors.push(`Basic request test failed: ${error.message}`);
+      result.errors.push(`Basic request test failed: ${(error as Error).message}`);
       return false;
     }
   }
@@ -209,7 +209,7 @@ export class CompatibilityTester {
       // Check if platform can handle tool registration and execution
       return true;
     } catch (error) {
-      result.errors.push(`Tool execution test failed: ${error.message}`);
+      result.errors.push(`Tool execution test failed: ${(error as Error).message}`);
       return false;
     }
   }
@@ -240,7 +240,7 @@ export class CompatibilityTester {
       
       return true;
     } catch (error) {
-      result.errors.push(`Streaming test failed: ${error.message}`);
+      result.errors.push(`Streaming test failed: ${(error as Error).message}`);
       return false;
     }
   }
@@ -261,7 +261,7 @@ export class CompatibilityTester {
       
       return true;
     } catch (error) {
-      result.errors.push(`Error handling test failed: ${error.message}`);
+      result.errors.push(`Error handling test failed: ${(error as Error).message}`);
       return false;
     }
   }
@@ -284,7 +284,7 @@ export class CompatibilityTester {
       
       return true;
     } catch (error) {
-      result.errors.push(`Authentication test failed: ${error.message}`);
+      result.errors.push(`Authentication test failed: ${(error as Error).message}`);
       return false;
     }
   }
@@ -310,7 +310,7 @@ export class CompatibilityTester {
       
       return true;
     } catch (error) {
-      result.errors.push(`File access test failed: ${error.message}`);
+      result.errors.push(`File access test failed: ${(error as Error).message}`);
       return false;
     }
   }

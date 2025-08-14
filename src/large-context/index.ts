@@ -5,6 +5,6 @@
  * beyond typical context window limitations
  */
 
-export * from './types';
-export { FileCollector } from './file-collector';
-export { LargeContextAnalyzer } from './large-context-analyzer';
+export * from './types.js';
+export { FileCollector } from './file-collector.js';
+export { LargeContextAnalyzer } from './large-context-analyzer.js';

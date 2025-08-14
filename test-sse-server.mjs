@@ -7,7 +7,7 @@ import { config } from 'dotenv';
 // Load environment variables
 config();
 
-console.log('🚀 Starting Ultimate MCP Server with SSE transport...\n');
+console.error('🚀 Starting Ultimate MCP Server with SSE transport...\n');
 
 // Set environment variables for SSE
 process.env.ENABLE_SSE = 'true';
@@ -34,18 +34,18 @@ const server = new UltimateMCPServer({
 
 // Start the server
 server.start().then(() => {
-  console.log('✅ Server started successfully');
-  console.log('\nAvailable transports:');
+  console.error('✅ Server started successfully');
+  console.error('\nAvailable transports:');
   const status = server.getTransportStatus();
   if (status) {
-    console.log(JSON.stringify(status, null, 2));
+    console.error(JSON.stringify(status, null, 2));
   }
   
-  console.log('\nSSE Endpoints:');
-  console.log('- GET  http://localhost:3000/sse    - SSE connection');
-  console.log('- POST http://localhost:3000/rpc    - RPC endpoint');
-  console.log('- GET  http://localhost:3000/health - Health check');
-  console.log('\nPress Ctrl+C to stop the server.\n');
+  console.error('\nSSE Endpoints:');
+  console.error('- GET  http://localhost:3000/sse    - SSE connection');
+  console.error('- POST http://localhost:3000/rpc    - RPC endpoint');
+  console.error('- GET  http://localhost:3000/health - Health check');
+  console.error('\nPress Ctrl+C to stop the server.\n');
 }).catch(error => {
   console.error('❌ Failed to start server:', error);
   process.exit(1);
@@ -53,13 +53,13 @@ server.start().then(() => {
 
 // Handle graceful shutdown
 process.on('SIGINT', async () => {
-  console.log('\n👋 Shutting down server...');
+  console.error('\n👋 Shutting down server...');
   await server.stop();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-  console.log('\n👋 Shutting down server...');
+  console.error('\n👋 Shutting down server...');
   await server.stop();
   process.exit(0);
 });

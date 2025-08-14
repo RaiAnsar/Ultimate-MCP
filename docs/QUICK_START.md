@@ -111,7 +111,7 @@ XAI_API_KEY=...         # For Grok models
 // Getting an error? Let Ultimate MCP help:
 /ask analyze_error {
   error: "ReferenceError: user is not defined",
-  code: "console.log(user.name)",
+  code: "console.error(user.name)",
   language: "javascript"
 }
 ```

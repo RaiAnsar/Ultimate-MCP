@@ -381,7 +381,7 @@ function generateHypotheses(problem: string, _code?: string, _expected?: string,
   if (problem.toLowerCase().includes("undefined")) {
     hypotheses.push({
       description: "Variable or property is undefined",
-      test: "Add console.log before the error line",
+      test: "Add console.error before the error line",
       verification: "Check if the value exists",
     });
   }

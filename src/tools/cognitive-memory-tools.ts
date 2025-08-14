@@ -67,7 +67,7 @@ export const buildKnowledgeGraph: ToolDefinition = {
         metadata: z.record(z.any()).optional()
       })
     ]).describe('Data for the operation')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     await initializeCognitiveMemory();
     
@@ -132,6 +132,9 @@ export const buildKnowledgeGraph: ToolDefinition = {
           message: `Relationship created: ${relData.sourceId} -[${relData.type}]-> ${relData.targetId}`
         };
       }
+      
+      default:
+        throw new Error(`Unknown operation: ${operation}`);
     }
   }
 };
@@ -149,7 +152,7 @@ export const cognitiveSearch: ToolDefinition = {
       .describe('Include related nodes through graph traversal'),
     depth: z.number().optional().default(2)
       .describe('Depth of graph traversal for related nodes')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     await initializeCognitiveMemory();
     
@@ -190,7 +193,7 @@ export const analyzeCodeGraph: ToolDefinition = {
     extensions: z.array(z.string()).optional()
       .default(['.js', '.ts', '.jsx', '.tsx', '.py'])
       .describe('File extensions to include')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     await initializeCognitiveMemory();
     
@@ -240,7 +243,7 @@ export const buildMemoryContext: ToolDefinition = {
     queries: z.array(z.string()).describe('List of queries to search for'),
     includeStats: z.boolean().optional().default(false)
       .describe('Include graph statistics in response')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     await initializeCognitiveMemory();
     
@@ -287,9 +290,9 @@ export const getRelatedMemories: ToolDefinition = {
   description: 'Get memories and concepts related to a specific node in the knowledge graph',
   inputSchema: z.object({
     nodeId: z.string().describe('Node ID to find related memories for'),
-    depth: z.number().optional().default(2).min(1).max(5)
+    depth: z.number().min(1).max(5).optional().default(2)
       .describe('How many hops to traverse in the graph')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     await initializeCognitiveMemory();
     
@@ -318,7 +321,7 @@ export const exportKnowledgeGraph: ToolDefinition = {
     format: z.enum(['visualization', 'stats'])
       .default('visualization')
       .describe('Export format')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     await initializeCognitiveMemory();
     
@@ -353,7 +356,7 @@ export const clearCognitiveMemory: ToolDefinition = {
   description: 'Clear all cognitive memory (use with caution)',
   inputSchema: z.object({
     confirm: z.boolean().describe('Confirm clearing all memory')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     if (!args.confirm) {
       return {

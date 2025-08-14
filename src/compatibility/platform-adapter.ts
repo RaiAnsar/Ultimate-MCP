@@ -2,9 +2,9 @@
  * Platform-specific adapters for compatibility
  */
 
-import { PlatformInfo, SupportedPlatform, SUPPORTED_PLATFORMS } from './platform-detector';
+import { PlatformInfo, SupportedPlatform, SUPPORTED_PLATFORMS } from './platform-detector.js';
 import { Request, Response } from 'express';
-import { MCPRequest, MCPResponse } from '../types';
+import { MCPRequest, MCPResponse } from '../types.js';
 
 export interface PlatformAdapter {
   platform: SupportedPlatform;
@@ -34,19 +34,7 @@ export interface PlatformAdapter {
 export class PlatformAdapterFactory {
   private static adapters = new Map<SupportedPlatform, PlatformAdapter>();
   
-  static {
-    // Register platform-specific adapters
-    this.registerAdapter(new ClaudeDesktopAdapter());
-    this.registerAdapter(new CursorAdapter());
-    this.registerAdapter(new WindsurfAdapter());
-    this.registerAdapter(new VSCodeAdapter());
-    this.registerAdapter(new ClineAdapter());
-    this.registerAdapter(new BoltAIAdapter());
-    this.registerAdapter(new LibreChatAdapter());
-    this.registerAdapter(new BigAGIAdapter());
-    // Default adapter for platforms without specific requirements
-    this.registerAdapter(new DefaultAdapter());
-  }
+  // Static initialization will be done after class definitions
   
   static registerAdapter(adapter: PlatformAdapter): void {
     this.adapters.set(adapter.platform, adapter);
@@ -109,7 +97,12 @@ class ClaudeDesktopAdapter extends DefaultAdapter {
       try {
         return JSON.parse(input);
       } catch {
-        return input;
+        // If we can't parse it, create a basic request
+        return {
+          id: Date.now(),
+          method: 'unknown',
+          params: { input }
+        };
       }
     }
     return input;
@@ -137,7 +130,7 @@ class CursorAdapter extends DefaultAdapter {
   
   async initialize(): Promise<void> {
     // Cursor-specific initialization
-    console.log('Initializing Cursor adapter...');
+    console.error('Initializing Cursor adapter...');
   }
   
   adaptHttpRequest(req: Request): MCPRequest {
@@ -293,5 +286,18 @@ class BigAGIAdapter extends DefaultAdapter {
 }
 
 // Additional adapters for other platforms can be added here...
+
+// Initialize adapters after all classes are defined
+(() => {
+  PlatformAdapterFactory.registerAdapter(new ClaudeDesktopAdapter());
+  PlatformAdapterFactory.registerAdapter(new CursorAdapter());
+  PlatformAdapterFactory.registerAdapter(new WindsurfAdapter());
+  PlatformAdapterFactory.registerAdapter(new VSCodeAdapter());
+  PlatformAdapterFactory.registerAdapter(new ClineAdapter());
+  PlatformAdapterFactory.registerAdapter(new BoltAIAdapter());
+  PlatformAdapterFactory.registerAdapter(new LibreChatAdapter());
+  PlatformAdapterFactory.registerAdapter(new BigAGIAdapter());
+  PlatformAdapterFactory.registerAdapter(new DefaultAdapter());
+})();
 
 export { PlatformAdapterFactory as default };

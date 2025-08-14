@@ -10,7 +10,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 const zlib = require('zlib');
 
-console.log('🚀 Optimizing Ultimate MCP bundle...\n');
+console.error('🚀 Optimizing Ultimate MCP bundle...\n');
 
 // Configuration
 const distDir = path.join(__dirname, '..', 'dist');
@@ -20,7 +20,7 @@ const reportPath = path.join(__dirname, '..', 'optimization-report.md');
 const optimizations = {
   // 1. Remove unnecessary files
   removeUnnecessaryFiles() {
-    console.log('📦 Removing unnecessary files...');
+    console.error('📦 Removing unnecessary files...');
     const unnecessaryPatterns = [
       '*.map',
       '*.test.js',
@@ -68,19 +68,19 @@ const optimizations = {
     };
     
     walkDir(distDir);
-    console.log(`  ✅ Removed ${removed} unnecessary files\n`);
+    console.error(`  ✅ Removed ${removed} unnecessary files\n`);
   },
   
   // 2. Minify JavaScript files
   minifyJavaScript() {
-    console.log('🗜️ Minifying JavaScript files...');
+    console.error('🗜️ Minifying JavaScript files...');
     
     try {
       // Install terser if not present
       try {
         require.resolve('terser');
       } catch {
-        console.log('  Installing terser...');
+        console.error('  Installing terser...');
         execSync('npm install --no-save terser', { stdio: 'inherit' });
       }
       
@@ -128,7 +128,7 @@ const optimizations = {
       };
       
       walkDir(distDir);
-      console.log(`  ✅ Minified ${minified} files, saved ${(totalSaved / 1024).toFixed(2)}KB\n`);
+      console.error(`  ✅ Minified ${minified} files, saved ${(totalSaved / 1024).toFixed(2)}KB\n`);
     } catch (error) {
       console.warn('  ⚠️ Minification skipped:', error.message);
     }
@@ -136,7 +136,7 @@ const optimizations = {
   
   // 3. Optimize imports and exports
   optimizeImports() {
-    console.log('📚 Optimizing imports...');
+    console.error('📚 Optimizing imports...');
     
     const optimizeFile = (filePath) => {
       let content = fs.readFileSync(filePath, 'utf8');
@@ -198,12 +198,12 @@ const optimizations = {
     };
     
     walkDir(distDir);
-    console.log(`  ✅ Optimized imports in ${optimizedCount} files\n`);
+    console.error(`  ✅ Optimized imports in ${optimizedCount} files\n`);
   },
   
   // 4. Create compressed versions
   createCompressedVersions() {
-    console.log('🗜️ Creating compressed versions...');
+    console.error('🗜️ Creating compressed versions...');
     
     const compressFile = (filePath) => {
       const content = fs.readFileSync(filePath);
@@ -234,19 +234,19 @@ const optimizations = {
     const mainFile = path.join(distDir, 'index.js');
     if (fs.existsSync(mainFile)) {
       const sizes = compressFile(mainFile);
-      console.log(`  ✅ Created compressed versions:`);
-      console.log(`     Original: ${(sizes.original / 1024).toFixed(2)}KB`);
-      console.log(`     Gzip: ${(sizes.gzip / 1024).toFixed(2)}KB (${((1 - sizes.gzip / sizes.original) * 100).toFixed(1)}% reduction)`);
+      console.error(`  ✅ Created compressed versions:`);
+      console.error(`     Original: ${(sizes.original / 1024).toFixed(2)}KB`);
+      console.error(`     Gzip: ${(sizes.gzip / 1024).toFixed(2)}KB (${((1 - sizes.gzip / sizes.original) * 100).toFixed(1)}% reduction)`);
       if (sizes.brotli > 0) {
-        console.log(`     Brotli: ${(sizes.brotli / 1024).toFixed(2)}KB (${((1 - sizes.brotli / sizes.original) * 100).toFixed(1)}% reduction)`);
+        console.error(`     Brotli: ${(sizes.brotli / 1024).toFixed(2)}KB (${((1 - sizes.brotli / sizes.original) * 100).toFixed(1)}% reduction)`);
       }
-      console.log();
+      console.error();
     }
   },
   
   // 5. Generate optimization report
   generateReport() {
-    console.log('📊 Generating optimization report...');
+    console.error('📊 Generating optimization report...');
     
     const calculateDirSize = (dir) => {
       let totalSize = 0;
@@ -299,7 +299,7 @@ ${generateFileTree(distDir, '  ', 2)}
 `;
     
     fs.writeFileSync(reportPath, report);
-    console.log(`  ✅ Report saved to: ${reportPath}\n`);
+    console.error(`  ✅ Report saved to: ${reportPath}\n`);
   }
 };
 
@@ -335,11 +335,11 @@ async function optimize() {
       await fn();
     }
     
-    console.log('✨ Bundle optimization complete!\n');
-    console.log('Next steps:');
-    console.log('1. Test the optimized bundle: npm start');
-    console.log('2. Run compatibility tests: npm run test:compatibility');
-    console.log('3. Deploy with confidence! 🚀\n');
+    console.error('✨ Bundle optimization complete!\n');
+    console.error('Next steps:');
+    console.error('1. Test the optimized bundle: npm start');
+    console.error('2. Run compatibility tests: npm run test:compatibility');
+    console.error('3. Deploy with confidence! 🚀\n');
   } catch (error) {
     console.error('❌ Optimization failed:', error);
     process.exit(1);

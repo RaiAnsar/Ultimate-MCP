@@ -318,7 +318,9 @@ export class BrowserManager {
    */
   private wrapPlaywrightPage(page: PlaywrightPage): UnifiedPage {
     return {
-      goto: (url: string) => page.goto(url).then(() => {}),
+      goto: async (url: string) => {
+        await page.goto(url);
+      },
       screenshot: async (options?: ScreenshotOptions) => {
         const result = await page.screenshot(options as any);
         return result as unknown as Buffer;
@@ -326,8 +328,9 @@ export class BrowserManager {
       evaluate: (fn: Function, ...args: any[]) => page.evaluate(fn as any, ...args),
       click: (selector: string) => page.click(selector),
       type: (selector: string, text: string) => page.type(selector, text),
-      waitForSelector: (selector: string, options?: any) => 
-        page.waitForSelector(selector, options).then(() => {}),
+      waitForSelector: async (selector: string, options?: any) => {
+        await page.waitForSelector(selector, options);
+      },
       close: () => page.close(),
       content: () => page.content(),
       title: () => page.title(),
@@ -341,7 +344,9 @@ export class BrowserManager {
    */
   private wrapPuppeteerPage(page: PuppeteerPage): UnifiedPage {
     return {
-      goto: (url: string) => page.goto(url).then(() => {}),
+      goto: async (url: string) => {
+        await page.goto(url);
+      },
       screenshot: async (options?: ScreenshotOptions) => {
         const result = await page.screenshot(options as any);
         return result as unknown as Buffer;
@@ -349,8 +354,9 @@ export class BrowserManager {
       evaluate: (fn: Function, ...args: any[]) => page.evaluate(fn as any, ...args),
       click: (selector: string) => page.click(selector),
       type: (selector: string, text: string) => page.type(selector, text),
-      waitForSelector: (selector: string, options?: any) => 
-        page.waitForSelector(selector, options).then(() => {}),
+      waitForSelector: async (selector: string, options?: any) => {
+        await page.waitForSelector(selector, options);
+      },
       close: () => page.close(),
       content: () => page.content(),
       title: () => page.title(),

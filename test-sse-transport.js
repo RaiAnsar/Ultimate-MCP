@@ -8,27 +8,27 @@ const BASE_URL = 'http://localhost:3000';
 let clientId = null;
 
 async function connectSSE() {
-  console.log('🔌 Connecting to SSE endpoint...');
+  console.error('🔌 Connecting to SSE endpoint...');
   
   const eventSource = new EventSource(`${BASE_URL}/sse`);
   
   eventSource.onopen = () => {
-    console.log('✅ SSE connection established');
+    console.error('✅ SSE connection established');
   };
   
   eventSource.addEventListener('connected', (event) => {
     const data = JSON.parse(event.data);
     clientId = data.clientId;
-    console.log(`📝 Client ID: ${clientId}`);
+    console.error(`📝 Client ID: ${clientId}`);
   });
   
   eventSource.addEventListener('response', (event) => {
     const data = JSON.parse(event.data);
-    console.log('📨 Response:', JSON.stringify(data, null, 2));
+    console.error('📨 Response:', JSON.stringify(data, null, 2));
   });
   
   eventSource.addEventListener('heartbeat', (event) => {
-    console.log('💓 Heartbeat received');
+    console.error('💓 Heartbeat received');
   });
   
   eventSource.onerror = (error) => {
@@ -57,7 +57,7 @@ async function testRPC(method, params) {
       }
     });
     
-    console.log(`✅ RPC ${method} success:`, response.data);
+    console.error(`✅ RPC ${method} success:`, response.data);
   } catch (error) {
     console.error(`❌ RPC ${method} failed:`, error.response?.data || error.message);
   }
@@ -67,18 +67,18 @@ async function testHTTP() {
   try {
     // Test health endpoint
     const health = await axios.get(`${BASE_URL}/health`);
-    console.log('🏥 Health check:', health.data);
+    console.error('🏥 Health check:', health.data);
     
     // Test tools endpoint
     const tools = await axios.get(`${BASE_URL}/tools`);
-    console.log('🔧 Available tools:', tools.data);
+    console.error('🔧 Available tools:', tools.data);
   } catch (error) {
     console.error('❌ HTTP test failed:', error.message);
   }
 }
 
 async function main() {
-  console.log('🚀 Testing Ultimate MCP SSE Transport\n');
+  console.error('🚀 Testing Ultimate MCP SSE Transport\n');
   
   // Connect to SSE
   const eventSource = await connectSSE();
@@ -103,7 +103,7 @@ async function main() {
   
   // Keep connection alive for a bit
   setTimeout(() => {
-    console.log('\n👋 Closing connection...');
+    console.error('\n👋 Closing connection...');
     eventSource.close();
     process.exit(0);
   }, 30000);

@@ -192,7 +192,7 @@ class ContentSearchProvider extends SearchProvider {
         '-n', // line numbers
         '-r', // recursive
         `--include=*{${fileTypes.join(',')}}`,
-        ...excludePatterns.map(p => `--exclude-dir=${p}`)
+        ...excludePatterns.map((p: any) => `--exclude-dir=${p}`)
       ].filter(Boolean).join(' ');
       
       const command = `grep ${grepFlags} "${query.replace(/"/g, '\\"')}" "${searchPath}"`;
@@ -355,7 +355,7 @@ export const universalSearch: ToolDefinition = {
       contextLines: z.number().optional().default(2),
       excludePatterns: z.array(z.string()).optional()
     }).optional()
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const { query, providers, searchPath, options = {} } = args;
     
@@ -397,7 +397,7 @@ export const searchFiles: ToolDefinition = {
     excludePatterns: z.array(z.string()).optional()
       .describe('Patterns to exclude (e.g., ["node_modules", ".git"])'),
     maxResults: z.number().optional().default(100)
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const results = await searchManager.search(args.pattern, ['filesystem'], {
       searchPath: args.searchPath,
@@ -440,7 +440,7 @@ export const searchContent: ToolDefinition = {
     contextLines: z.number().optional().default(2)
       .describe('Number of context lines to show'),
     maxResults: z.number().optional().default(50)
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const results = await searchManager.search(args.query, ['content'], {
       searchPath: args.searchPath,
@@ -469,7 +469,7 @@ export const searchProcesses: ToolDefinition = {
   description: 'Search for running processes',
   inputSchema: z.object({
     query: z.string().describe('Process name or command to search for')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const results = await searchManager.search(args.query, ['process'], {});
     
@@ -500,7 +500,7 @@ export const searchEverything: ToolDefinition = {
       includeProcesses: z.boolean().optional().default(false),
       maxResultsPerType: z.number().optional().default(20)
     }).optional()
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const { query, options = {} } = args;
     

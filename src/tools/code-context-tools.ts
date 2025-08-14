@@ -44,7 +44,7 @@ export const extractCodeContext: ToolDefinition = {
         .optional()
         .describe('Context extraction strategy')
     }).optional()
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContextManager();
     const { filePaths, options = {} } = args;
@@ -86,7 +86,7 @@ export const analyzeFileStructure: ToolDefinition = {
   description: 'Analyze the structure of a code file including imports, exports, classes, and functions',
   inputSchema: z.object({
     filePath: z.string().describe('File path to analyze')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContextManager();
     const fileContext = await manager.getFileContext(args.filePath);
@@ -157,7 +157,7 @@ export const searchCodeContext: ToolDefinition = {
       includeReferences: z.boolean().optional().default(false)
         .describe('Include references to the query')
     }).optional()
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContextManager();
     const { query, searchPaths, options = {} } = args;
@@ -173,7 +173,7 @@ export const searchCodeContext: ToolDefinition = {
     const definition = await manager.findDefinition(query, searchPaths);
     
     // Find references if requested
-    let references = [];
+    let references: any[] = [];
     if (options.includeReferences) {
       references = await manager.findReferences(query, searchPaths);
     }
@@ -217,7 +217,7 @@ export const findSymbolDefinition: ToolDefinition = {
   inputSchema: z.object({
     symbol: z.string().describe('Symbol name to find'),
     searchPaths: z.array(z.string()).describe('Paths to search in')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContextManager();
     const definition = await manager.findDefinition(args.symbol, args.searchPaths);
@@ -255,7 +255,7 @@ export const findSymbolReferences: ToolDefinition = {
     searchPaths: z.array(z.string()).describe('Paths to search in'),
     includeDefinition: z.boolean().optional().default(true)
       .describe('Include the definition in results')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContextManager();
     
@@ -302,7 +302,7 @@ export const buildSmartContext: ToolDefinition = {
       fileTypes: z.array(z.string()).optional()
         .describe('File extensions to include (e.g., [".ts", ".js"])')
     }).optional()
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContextManager();
     const { task, basePath, options = {} } = args;
@@ -372,7 +372,7 @@ export const buildSmartContext: ToolDefinition = {
 export const clearContextCache: ToolDefinition = {
   name: 'clear_context_cache',
   description: 'Clear the code context cache',
-  inputSchema: z.object({}).strict(),
+  inputSchema: z.object({}).strict() as any,
   handler: async () => {
     const manager = getContextManager();
     manager.clearCache();

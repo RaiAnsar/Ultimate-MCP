@@ -75,33 +75,33 @@ async function checkWhois(domain) {
 }
 
 async function main() {
-  console.log('🔍 Checking domain availability for Ultimate MCP...\n');
+  console.error('🔍 Checking domain availability for Ultimate MCP...\n');
   
-  console.log('⚡ Quick DNS Check:');
-  console.log('=' .repeat(50));
+  console.error('⚡ Quick DNS Check:');
+  console.error('=' .repeat(50));
   
   for (const domain of domains) {
     const result = await checkDomain(domain);
     const status = result.available === false ? '❌' : 
                   result.available === 'maybe' ? '🟡' : '⚠️';
-    console.log(`${status} ${domain.padEnd(25)} - ${result.reason}`);
+    console.error(`${status} ${domain.padEnd(25)} - ${result.reason}`);
   }
   
-  console.log('\n📝 Notes:');
-  console.log('- 🟡 = Potentially available (needs WHOIS check)');
-  console.log('- ❌ = Likely taken (has DNS records)');
-  console.log('- ⚠️ = Error checking domain');
+  console.error('\n📝 Notes:');
+  console.error('- 🟡 = Potentially available (needs WHOIS check)');
+  console.error('- ❌ = Likely taken (has DNS records)');
+  console.error('- ⚠️ = Error checking domain');
   
-  console.log('\n💡 Recommendations:');
-  console.log('1. Use a domain registrar to verify availability');
-  console.log('2. Consider registering multiple domains for brand protection');
-  console.log('3. Set up redirects from alternative domains to primary');
-  console.log('4. Register matching social media handles');
+  console.error('\n💡 Recommendations:');
+  console.error('1. Use a domain registrar to verify availability');
+  console.error('2. Consider registering multiple domains for brand protection');
+  console.error('3. Set up redirects from alternative domains to primary');
+  console.error('4. Register matching social media handles');
   
-  console.log('\n🌐 Suggested registrars:');
-  console.log('- Namecheap: https://www.namecheap.com');
-  console.log('- Google Domains: https://domains.google');
-  console.log('- Cloudflare: https://www.cloudflare.com/products/registrar/');
+  console.error('\n🌐 Suggested registrars:');
+  console.error('- Namecheap: https://www.namecheap.com');
+  console.error('- Google Domains: https://domains.google');
+  console.error('- Cloudflare: https://www.cloudflare.com/products/registrar/');
 }
 
 main().catch(console.error);

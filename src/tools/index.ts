@@ -112,7 +112,7 @@ export async function registerBuiltInTools(
     // Pass orchestrator to tools that need it
     const toolWithOrchestrator = {
       ...tool,
-      handler: async (args: any) => tool.handler(args, orchestrator)
+      handler: async (args: any) => (tool.handler as any)(args, orchestrator)
     };
     server.registerTool(toolWithOrchestrator);
   }

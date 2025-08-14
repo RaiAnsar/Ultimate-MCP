@@ -66,7 +66,7 @@ export const ragIngestDocument: ToolDefinition = {
     title: z.string().optional().describe('Document title'),
     source: z.string().optional().describe('Document source'),
     tags: z.array(z.string()).optional().describe('Tags for filtering')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     if (!ragManager) {
       await initializeRAG();
@@ -95,7 +95,7 @@ export const ragIngestFile: ToolDefinition = {
   inputSchema: z.object({
     filePath: z.string().describe('Path to the file to ingest'),
     metadata: z.record(z.any()).optional().describe('Additional metadata')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     if (!ragManager) {
       await initializeRAG();
@@ -121,7 +121,7 @@ export const ragIngestDirectory: ToolDefinition = {
       .describe('File extensions to include (default: .txt, .md, .json)'),
     recursive: z.boolean().optional().default(true)
       .describe('Process subdirectories recursively')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     if (!ragManager) {
       await initializeRAG();
@@ -160,7 +160,7 @@ export const ragSearch: ToolDefinition = {
     filter: z.record(z.any()).optional().describe('Metadata filters'),
     includeContent: z.boolean().optional().default(true)
       .describe('Include full content in results')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     if (!ragManager) {
       await initializeRAG();
@@ -195,7 +195,7 @@ export const ragQuery: ToolDefinition = {
       .describe('Number of top results to use for context'),
     systemPrompt: z.string().optional()
       .describe('Custom system prompt for answer generation')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     if (!ragManager) {
       await initializeRAG();
@@ -224,7 +224,7 @@ export const ragQuery: ToolDefinition = {
 export const ragStats: ToolDefinition = {
   name: 'rag_stats',
   description: 'Get statistics about the RAG system',
-  inputSchema: z.object({}).strict(),
+  inputSchema: z.object({}).strict() as any,
   handler: async () => {
     if (!ragManager) {
       await initializeRAG();
@@ -244,7 +244,7 @@ export const ragClear: ToolDefinition = {
   description: 'Clear all documents from the RAG system',
   inputSchema: z.object({
     confirm: z.boolean().describe('Confirm clearing all documents')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     if (!args.confirm) {
       return {
@@ -288,7 +288,7 @@ export const ragConfigure: ToolDefinition = {
       threshold: z.number().optional(),
       reranking: z.boolean().optional()
     }).optional()
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     // Close existing manager if any
     if (ragManager) {

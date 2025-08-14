@@ -42,7 +42,7 @@ ultimate-mcp-server --transport sse --port 3000
 const eventSource = new EventSource('http://localhost:3000/events');
 eventSource.onmessage = (event) => {
   const data = JSON.parse(event.data);
-  console.log('Received:', data);
+  console.error('Received:', data);
 };
 ```
 
@@ -418,15 +418,15 @@ mcp.registerTool({
 ```typescript
 // Listen to events
 mcp.on('tool:start', (event) => {
-  console.log(`Tool ${event.tool} started`);
+  console.error(`Tool ${event.tool} started`);
 });
 
 mcp.on('tool:complete', (event) => {
-  console.log(`Tool ${event.tool} completed in ${event.duration}ms`);
+  console.error(`Tool ${event.tool} completed in ${event.duration}ms`);
 });
 
 mcp.on('model:response', (event) => {
-  console.log(`Model ${event.model} responded with ${event.tokens} tokens`);
+  console.error(`Model ${event.model} responded with ${event.tokens} tokens`);
 });
 ```
 

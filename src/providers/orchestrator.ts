@@ -361,12 +361,12 @@ ${initialResponses.map(r => `${r?.model}:\n${r?.response}`).join("\n\n---\n\n")}
     switch (strategy) {
       case OrchestrationStrategy.Debate:
       case OrchestrationStrategy.Consensus:
-        return [MODELS.GPT_4O, MODELS.GEMINI_PRO, MODELS.LLAMA_3_70B];
+        return [MODELS.GPT_4O, MODELS.GEMINI_PRO, MODELS.LLAMA_3_3_70B];
       case OrchestrationStrategy.Specialist:
         return [MODELS.GPT_4O];
       default:
         // Return some default models that are generally available
-        return [MODELS.GPT_4O_MINI, MODELS.GEMINI_PRO, MODELS.LLAMA_3_70B];
+        return [MODELS.GPT_4O_MINI, MODELS.GEMINI_PRO, MODELS.LLAMA_3_3_70B];
     }
   }
 
@@ -412,11 +412,11 @@ ${initialResponses.map(r => `${r?.model}:\n${r?.response}`).join("\n\n---\n\n")}
   private selectBestModel(taskType: string, availableModels: string[]): string {
     // Model selection logic based on task type
     const preferences: Record<string, string[]> = {
-      coding: [MODELS.KIMI_K2, MODELS.QWEN_CODER, MODELS.GPT_4O, MODELS.DEEPSEEK],
+      coding: [MODELS.KIMI_K2, MODELS.QWEN_2_5_CODER_32B, MODELS.GPT_4O, MODELS.DEEPSEEK_V3],
       analysis: [MODELS.ANALYSIS_MODEL, MODELS.GPT_4O, MODELS.MISTRAL_LARGE],
-      creative: [MODELS.GPT_4O, MODELS.GEMINI_PRO, MODELS.LLAMA_3_70B],
-      mathematical: [MODELS.GPT_4O, MODELS.GEMINI_PRO, MODELS.QWEN_CODER],
-      general: [MODELS.GEMINI_PRO, MODELS.GPT_4O, MODELS.LLAMA_3_70B],
+      creative: [MODELS.GPT_4O, MODELS.GEMINI_PRO, MODELS.LLAMA_3_3_70B],
+      mathematical: [MODELS.GPT_4O, MODELS.GEMINI_PRO, MODELS.QWEN_2_5_CODER_32B],
+      general: [MODELS.GEMINI_PRO, MODELS.GPT_4O, MODELS.LLAMA_3_3_70B],
     };
 
     const preferred = preferences[taskType] || preferences.general;

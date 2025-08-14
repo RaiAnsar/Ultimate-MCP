@@ -201,9 +201,9 @@ const exploration = await auto_explore_codebase({
   maxFiles: 200
 });
 
-console.log(exploration.summary);
-console.log('Key findings:', exploration.keyFindings);
-console.log('Languages:', exploration.statistics.languages);
+console.error(exploration.summary);
+console.error('Key findings:', exploration.keyFindings);
+console.error('Languages:', exploration.statistics.languages);
 
 // 2. Analyze architecture
 const architecture = await auto_analyze_architecture({
@@ -211,8 +211,8 @@ const architecture = await auto_analyze_architecture({
   depth: 'deep'
 });
 
-console.log('Patterns found:', architecture.architecture.patterns);
-console.log('Entry points:', architecture.architecture.entryPoints);
+console.error('Patterns found:', architecture.architecture.patterns);
+console.error('Entry points:', architecture.architecture.entryPoints);
 ```
 
 ### Finding Specific Implementation
@@ -226,8 +226,8 @@ const auth = await auto_find_implementation({
 });
 
 if (auth.found) {
-  console.log('Found implementations:', auth.implementations);
-  console.log('Exploration path:', auth.explorationPath);
+  console.error('Found implementations:', auth.implementations);
+  console.error('Exploration path:', auth.explorationPath);
 }
 
 // 2. Trace data flow
@@ -237,7 +237,7 @@ const flow = await auto_trace_data_flow({
   maxDepth: 5
 });
 
-console.log('Data flow:', flow.flowTrace);
+console.error('Data flow:', flow.flowTrace);
 ```
 
 ### Autonomous Navigation
@@ -252,10 +252,10 @@ const plan = await auto_plan_exploration({
   }
 });
 
-console.log('Planned steps:');
+console.error('Planned steps:');
 plan.plan.steps.forEach(step => {
-  console.log(`${step.order}. ${step.action} -> ${step.target}`);
-  console.log(`   Purpose: ${step.purpose}`);
+  console.error(`${step.order}. ${step.action} -> ${step.target}`);
+  console.error(`   Purpose: ${step.purpose}`);
 });
 
 // 2. Navigate with reasoning
@@ -265,8 +265,8 @@ const nav = await auto_navigate({
   followUp: true
 });
 
-console.log('Findings:', nav.findings);
-console.log('Next steps:', nav.nextSteps);
+console.error('Findings:', nav.findings);
+console.error('Next steps:', nav.nextSteps);
 ```
 
 ### Improvement Analysis
@@ -278,13 +278,13 @@ const improvements = await auto_suggest_improvements({
   focusAreas: ['testing', 'security', 'performance']
 });
 
-console.log('Improvements by category:');
+console.error('Improvements by category:');
 for (const [category, suggestions] of Object.entries(improvements.improvements)) {
-  console.log(`\n${category}:`);
-  suggestions.forEach(s => console.log(`  - ${s}`));
+  console.error(`\n${category}:`);
+  suggestions.forEach(s => console.error(`  - ${s}`));
 }
 
-console.log(`\nCodebase health: ${improvements.codebaseHealth.status} (${improvements.codebaseHealth.score}/100)`);
+console.error(`\nCodebase health: ${improvements.codebaseHealth.status} (${improvements.codebaseHealth.score}/100)`);
 ```
 
 ### Progress Monitoring
@@ -293,15 +293,15 @@ console.log(`\nCodebase health: ${improvements.codebaseHealth.status} (${improve
 // During exploration, check progress
 const progress = await auto_get_progress();
 
-console.log(`Phase: ${progress.currentPhase}`);
-console.log(`Progress: ${progress.progress}`);
-console.log(`Files visited: ${progress.statistics.filesVisited}/${progress.statistics.totalFiles}`);
-console.log(`Insights generated: ${progress.statistics.insights}`);
+console.error(`Phase: ${progress.currentPhase}`);
+console.error(`Progress: ${progress.progress}`);
+console.error(`Files visited: ${progress.statistics.filesVisited}/${progress.statistics.totalFiles}`);
+console.error(`Insights generated: ${progress.statistics.insights}`);
 
 // Recent insights
-console.log('\nRecent insights:');
+console.error('\nRecent insights:');
 progress.recentInsights.forEach(insight => {
-  console.log(`- [${insight.type}] ${insight.description} (${insight.relevance})`);
+  console.error(`- [${insight.type}] ${insight.description} (${insight.relevance})`);
 });
 ```
 
@@ -387,7 +387,7 @@ Check progress for long-running tasks:
 ```javascript
 setInterval(async () => {
   const progress = await auto_get_progress();
-  console.log(`Progress: ${progress.progress}`);
+  console.error(`Progress: ${progress.progress}`);
 }, 5000);
 ```
 

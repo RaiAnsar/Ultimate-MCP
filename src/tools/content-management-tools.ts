@@ -39,7 +39,7 @@ export const createSpace: ToolDefinition = {
   inputSchema: z.object({
     name: z.string().describe('Space name'),
     description: z.string().optional().describe('Space description')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContentManager();
     const space = await manager.createSpace(args.name, args.description);
@@ -65,7 +65,7 @@ export const createSpace: ToolDefinition = {
 export const listSpaces: ToolDefinition = {
   name: 'content_list_spaces',
   description: 'List all content spaces',
-  inputSchema: z.object({}).strict(),
+  inputSchema: z.object({}).strict() as any,
   handler: async () => {
     const manager = getContentManager();
     const spaces = await manager.listSpaces();
@@ -108,7 +108,7 @@ export const createContentType: ToolDefinition = {
         params: z.any().optional()
       })).optional()
     })).describe('Field definitions')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContentManager();
     const contentType = await manager.createContentType(
@@ -152,7 +152,7 @@ export const createEntry: ToolDefinition = {
     status: z.enum(['draft', 'published']).optional().default('draft'),
     locale: z.string().optional().describe('Locale code'),
     tags: z.array(z.string()).optional().describe('Tags for organization')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContentManager();
     const entry = await manager.createEntry(
@@ -190,7 +190,7 @@ export const updateEntry: ToolDefinition = {
     fields: z.record(z.any()).optional().describe('Updated field values'),
     status: z.enum(['draft', 'published', 'archived']).optional(),
     tags: z.array(z.string()).optional()
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContentManager();
     const updates: any = {};
@@ -225,7 +225,7 @@ export const searchEntries: ToolDefinition = {
     locale: z.string().optional(),
     limit: z.number().optional().default(3).describe('Items per page (max 10)'),
     offset: z.number().optional().default(0).describe('Skip items')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContentManager();
     const result = await manager.searchEntries(
@@ -275,7 +275,7 @@ export const uploadAsset: ToolDefinition = {
     title: z.string().describe('Asset title'),
     description: z.string().optional(),
     tags: z.array(z.string()).optional()
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContentManager();
     const asset = await manager.uploadAsset(
@@ -312,7 +312,7 @@ export const getAsset: ToolDefinition = {
   description: 'Get asset details by ID',
   inputSchema: z.object({
     assetId: z.string().describe('Asset ID')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContentManager();
     const asset = await manager.getAsset(args.assetId);
@@ -353,7 +353,7 @@ export const addComment: ToolDefinition = {
     author: z.string().describe('Comment author'),
     body: z.string().max(512).describe('Comment text (max 512 chars)'),
     parentId: z.string().optional().describe('Parent comment ID for replies')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContentManager();
     const comment = await manager.addComment(
@@ -385,7 +385,7 @@ export const getEntryComments: ToolDefinition = {
   description: 'Get all comments for an entry',
   inputSchema: z.object({
     entryId: z.string().describe('Entry ID')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContentManager();
     const comments = await manager.getEntryComments(args.entryId);
@@ -418,7 +418,7 @@ export const bulkOperation: ToolDefinition = {
       force: z.boolean().optional(),
       locale: z.string().optional()
     }).optional()
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContentManager();
     const operation: ContentBulkOperation = {
@@ -457,7 +457,7 @@ export const importContent: ToolDefinition = {
       .describe('Field mapping (source -> target)'),
     updateExisting: z.boolean().optional().default(false),
     locale: z.string().optional()
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContentManager();
     const result = await manager.importContent(
@@ -494,7 +494,7 @@ export const exportContent: ToolDefinition = {
     fields: z.array(z.string()).optional()
       .describe('Specific fields to export'),
     includeMetadata: z.boolean().optional().default(false)
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContentManager();
     const data = await manager.exportContent(
@@ -523,7 +523,7 @@ export const getContentStats: ToolDefinition = {
   description: 'Get content management statistics',
   inputSchema: z.object({
     spaceId: z.string().optional().describe('Space ID for space-specific stats')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const manager = getContentManager();
     const stats = await manager.getStats(args.spaceId);

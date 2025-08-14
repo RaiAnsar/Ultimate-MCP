@@ -448,7 +448,7 @@ export class TypeScriptContextExtractor extends BaseContextExtractor {
       if (t.isImportDefaultSpecifier(spec)) {
         return spec.local.name;
       } else if (t.isImportSpecifier(spec)) {
-        return spec.imported.name;
+        return 'name' in spec.imported ? spec.imported.name : spec.imported.value;
       } else if (t.isImportNamespaceSpecifier(spec)) {
         return `* as ${spec.local.name}`;
       }

@@ -11,7 +11,8 @@ import {
   CollectedFile,
   FileCollection,
   DirectoryTree
-} from './types';
+} from './types.js';
+import { joinPath, normalizePath } from '../utils/platform-utils.js';
 
 export class FileCollector {
   private readonly defaultExcludes = [
@@ -295,7 +296,7 @@ export class FileCollector {
       }
       
       // Sort children
-      tree.children!.sort((a, b) => {
+      tree.children!.sort((a: DirectoryTree, b: DirectoryTree) => {
         // Directories first
         if (a.type !== b.type) {
           return a.type === 'directory' ? -1 : 1;

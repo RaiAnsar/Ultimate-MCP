@@ -19,7 +19,7 @@ if (!existsSync(coverageDir)) {
   mkdirSync(coverageDir, { recursive: true });
 }
 
-console.log(chalk.blue.bold('🧪 Ultimate MCP v2.0 - Test Suite\n'));
+console.error(chalk.blue.bold('🧪 Ultimate MCP v2.0 - Test Suite\n'));
 
 // Test categories
 const testSuites = [
@@ -54,7 +54,7 @@ const testSuites = [
 ];
 
 async function runTestSuite(suite) {
-  console.log(chalk.yellow(`\n📋 Running ${suite.name}...`));
+  console.error(chalk.yellow(`\n📋 Running ${suite.name}...`));
   
   return new Promise((resolve, reject) => {
     const testProcess = spawn('npx', ['vitest', 'run', suite.pattern], {
@@ -77,10 +77,10 @@ async function runTestSuite(suite) {
 
     testProcess.on('close', (code) => {
       if (code === 0) {
-        console.log(chalk.green(`✅ ${suite.name} passed`));
+        console.error(chalk.green(`✅ ${suite.name} passed`));
         resolve({ suite: suite.name, passed: true, output });
       } else {
-        console.log(chalk.red(`❌ ${suite.name} failed`));
+        console.error(chalk.red(`❌ ${suite.name} failed`));
         resolve({ suite: suite.name, passed: false, output, errorOutput });
       }
     });
@@ -88,7 +88,7 @@ async function runTestSuite(suite) {
 }
 
 async function runAllTests() {
-  console.log(chalk.cyan('Running all test suites...\n'));
+  console.error(chalk.cyan('Running all test suites...\n'));
   
   const args = process.argv.slice(2);
   const runCoverage = args.includes('--coverage');
@@ -110,7 +110,7 @@ async function runAllTests() {
   
   if (runCoverage) {
     // Run with coverage
-    console.log(chalk.magenta('📊 Running tests with coverage...\n'));
+    console.error(chalk.magenta('📊 Running tests with coverage...\n'));
     
     const coverageProcess = spawn('npx', ['vitest', 'run', '--coverage'], {
       stdio: 'inherit',
@@ -119,10 +119,10 @@ async function runAllTests() {
     
     coverageProcess.on('close', (code) => {
       if (code === 0) {
-        console.log(chalk.green.bold('\n✨ All tests passed with coverage!'));
-        console.log(chalk.cyan(`Coverage report available at: ${join(coverageDir, 'index.html')}`));
+        console.error(chalk.green.bold('\n✨ All tests passed with coverage!'));
+        console.error(chalk.cyan(`Coverage report available at: ${join(coverageDir, 'index.html')}`));
       } else {
-        console.log(chalk.red.bold('\n💔 Some tests failed'));
+        console.error(chalk.red.bold('\n💔 Some tests failed'));
       }
       process.exit(code);
     });
@@ -139,8 +139,8 @@ async function runAllTests() {
   }
   
   // Summary
-  console.log(chalk.blue.bold('\n📊 Test Summary'));
-  console.log('='.repeat(50));
+  console.error(chalk.blue.bold('\n📊 Test Summary'));
+  console.error('='.repeat(50));
   
   const passed = results.filter(r => r.passed).length;
   const failed = results.filter(r => !r.passed).length;
@@ -148,18 +148,18 @@ async function runAllTests() {
   results.forEach(result => {
     const icon = result.passed ? '✅' : '❌';
     const color = result.passed ? chalk.green : chalk.red;
-    console.log(`${icon} ${color(result.suite.padEnd(25))} ${result.passed ? 'PASSED' : 'FAILED'}`);
+    console.error(`${icon} ${color(result.suite.padEnd(25))} ${result.passed ? 'PASSED' : 'FAILED'}`);
   });
   
-  console.log('='.repeat(50));
-  console.log(`Total: ${results.length} suites`);
-  console.log(chalk.green(`Passed: ${passed}`));
+  console.error('='.repeat(50));
+  console.error(`Total: ${results.length} suites`);
+  console.error(chalk.green(`Passed: ${passed}`));
   if (failed > 0) {
-    console.log(chalk.red(`Failed: ${failed}`));
+    console.error(chalk.red(`Failed: ${failed}`));
   }
   
   // Run type checking
-  console.log(chalk.yellow('\n🔍 Running type check...'));
+  console.error(chalk.yellow('\n🔍 Running type check...'));
   
   const typeCheckProcess = spawn('npx', ['tsc', '--noEmit'], {
     stdio: 'pipe',
@@ -168,17 +168,17 @@ async function runAllTests() {
   
   typeCheckProcess.on('close', (code) => {
     if (code === 0) {
-      console.log(chalk.green('✅ Type check passed'));
+      console.error(chalk.green('✅ Type check passed'));
     } else {
-      console.log(chalk.red('❌ Type check failed'));
+      console.error(chalk.red('❌ Type check failed'));
     }
     
     // Final status
     if (failed === 0 && code === 0) {
-      console.log(chalk.green.bold('\n🎉 All tests and checks passed!'));
+      console.error(chalk.green.bold('\n🎉 All tests and checks passed!'));
       process.exit(0);
     } else {
-      console.log(chalk.red.bold('\n💔 Some tests or checks failed'));
+      console.error(chalk.red.bold('\n💔 Some tests or checks failed'));
       process.exit(1);
     }
   });

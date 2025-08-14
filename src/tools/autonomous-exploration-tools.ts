@@ -40,7 +40,7 @@ export const exploreCodebase: ToolDefinition = {
       .describe('Maximum files to analyze'),
     timeLimit: z.number().optional().default(60000)
       .describe('Time limit in milliseconds')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const engine = getExplorationEngine();
     
@@ -92,7 +92,7 @@ export const findImplementation: ToolDefinition = {
     target: z.string().describe('What to find (function, class, feature, etc.)'),
     includeUsage: z.boolean().optional().default(true)
       .describe('Also find where it is used')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const engine = getExplorationEngine();
     
@@ -143,11 +143,11 @@ export const analyzeArchitecture: ToolDefinition = {
     rootPath: z.string().describe('Root directory of the project'),
     depth: z.enum(['shallow', 'medium', 'deep']).optional().default('medium')
       .describe('Analysis depth')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const engine = getExplorationEngine();
     
-    const depthConfig = {
+    const depthConfig: Record<string, { maxFiles: number; timeLimit: number }> = {
       shallow: { maxFiles: 50, timeLimit: 30000 },
       medium: { maxFiles: 150, timeLimit: 90000 },
       deep: { maxFiles: 500, timeLimit: 300000 }
@@ -208,7 +208,7 @@ export const navigateAutonomously: ToolDefinition = {
     reason: z.string().describe('Why navigating there'),
     followUp: z.boolean().optional().default(true)
       .describe('Suggest follow-up actions')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const engine = getExplorationEngine();
     
@@ -241,7 +241,7 @@ export const planExploration: ToolDefinition = {
       timeLimit: z.number().optional(),
       focusAreas: z.array(z.string()).optional()
     }).optional()
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const engine = getExplorationEngine();
     
@@ -281,7 +281,7 @@ export const generateInsight: ToolDefinition = {
     ] as const).describe('Type of insight'),
     description: z.string().describe('Insight description'),
     filePath: z.string().optional().describe('Related file path')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const engine = getExplorationEngine();
     
@@ -308,7 +308,7 @@ export const generateInsight: ToolDefinition = {
 export const getExplorationProgress: ToolDefinition = {
   name: 'auto_get_progress',
   description: 'Get current exploration progress and statistics',
-  inputSchema: z.object({}).strict(),
+  inputSchema: z.object({}).strict() as any,
   handler: async () => {
     const engine = getExplorationEngine();
     const progress = engine.getProgress();
@@ -349,12 +349,12 @@ export const makeAutonomousDecision: ToolDefinition = {
       pros: z.array(z.string()).optional().default([]),
       cons: z.array(z.string()).optional().default([])
     })).describe('Available options')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const engine = getExplorationEngine();
     
     // Calculate confidence for each option
-    const optionsWithConfidence = args.options.map(opt => ({
+    const optionsWithConfidence = args.options.map((opt: any) => ({
       ...opt,
       confidence: calculateConfidence(opt.pros.length, opt.cons.length)
     }));
@@ -372,7 +372,7 @@ export const makeAutonomousDecision: ToolDefinition = {
         impact: decision.impact,
         timestamp: decision.timestamp
       },
-      allOptions: args.options.map(opt => ({
+      allOptions: args.options.map((opt: any) => ({
         id: opt.id,
         label: opt.label,
         selected: opt.id === decision.selected
@@ -389,7 +389,7 @@ export const traceDataFlow: ToolDefinition = {
     dataPoint: z.string().describe('Data point to trace (variable, function, etc.)'),
     maxDepth: z.number().optional().default(5)
       .describe('Maximum trace depth')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const engine = getExplorationEngine();
     
@@ -442,7 +442,7 @@ export const suggestImprovements: ToolDefinition = {
       'performance', 'security', 'maintainability',
       'testing', 'documentation', 'architecture'
     ])).optional().describe('Areas to focus on')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const engine = getExplorationEngine();
     

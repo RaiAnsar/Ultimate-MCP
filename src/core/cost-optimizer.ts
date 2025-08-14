@@ -112,8 +112,8 @@ export class CostOptimizer {
     });
     
     // DeepSeek models
-    this.modelInfo.set(MODELS.DEEPSEEK_CODER, {
-      name: MODELS.DEEPSEEK_CODER,
+    this.modelInfo.set(MODELS.DEEPSEEK_CODER_V2, {
+      name: MODELS.DEEPSEEK_CODER_V2,
       provider: 'deepseek',
       category: 'specialized',
       contextWindow: 128000,
@@ -131,12 +131,18 @@ export class CostOptimizer {
    */
   selectOptimalModel(
     task: {
-      type: 'coding' | 'reasoning' | 'vision' | 'general';
+      type: 'coding' | 'reasoning' | 'vision' | 'general' | 'debugging';
       estimatedTokens: number;
       complexity: 'simple' | 'medium' | 'complex';
     },
     constraints: OptimizationConstraints = {}
-  ): ModelInfo {
+  ): {
+    model: ModelInfo;
+    reason: string;
+    score: number;
+    estimatedCost: number;
+    alternatives: string[];
+  } {
     let candidates = Array.from(this.modelInfo.values());
     
     // Filter by required capabilities
@@ -187,17 +193,24 @@ export class CostOptimizer {
       // Task fitness score
       let fitnessScore = 0.5;
       if (task.type === 'coding' && model.name && model.name.includes('coder')) fitnessScore = 1;
+      if (task.type === 'debugging' && (model.capabilities?.includes('debugging') || model.name?.includes('coder'))) fitnessScore = 1;
       if (task.type === 'vision' && model.capabilities && model.capabilities.includes('vision')) fitnessScore = 0.9;
       
       // Adjust for complexity - prefer higher quality models for complex tasks
       if (task.complexity === 'complex') {
-        if (model.quality === 'high') fitnessScore = 1;
-        // For complex tasks, penalize low-quality models more
-        if (model.quality === 'low') score -= 20;
+        if (model.quality === 'high') {
+          fitnessScore = 1;
+          score += 50; // Strong boost for high quality on complex tasks
+        }
+        // For complex tasks, strongly penalize medium/low quality models
+        if (model.quality === 'medium') score -= 30;
+        if (model.quality === 'low') score -= 60;
       } else if (task.complexity === 'simple') {
         if (model.speed === 'fast') fitnessScore = 0.9;
         // For simple tasks, prefer cheaper models
         score += costScore * 20; // Add extra weight to cost for simple tasks
+        // Penalize expensive models for simple tasks
+        if (model.category === 'premium') score -= 20;
       }
       
       score += fitnessScore * 10; // 10% weight
@@ -245,11 +258,12 @@ export class CostOptimizer {
         selected.model.capabilities.includes('coding'))) {
       reasons.push('optimized for coding tasks');
     }
+    if (task.type === 'debugging' && (selected.model.capabilities.includes('debugging') ||
+        selected.model.name.includes('coder'))) {
+      reasons.push('debugging support');
+    }
     if (task.type === 'vision' && selected.model.capabilities.includes('vision')) {
       reasons.push('vision capabilities');
-    }
-    if (task.type === 'debugging' && selected.model.capabilities.includes('coding')) {
-      reasons.push('debugging support');
     }
     if (selected.model.speed === 'fast' && task.complexity === 'simple') {
       reasons.push('fast response for simple task');
@@ -400,7 +414,7 @@ export class CostOptimizer {
     }
     
     // Ensure we have at least 3 models in the chain
-    const fallbackModels = [MODELS.CLAUDE_3_HAIKU, MODELS.GEMINI_2_FLASH, MODELS.DEEPSEEK_CODER];
+    const fallbackModels = [MODELS.CLAUDE_3_HAIKU, MODELS.GEMINI_2_FLASH, MODELS.DEEPSEEK_CODER_V2];
     for (const fallback of fallbackModels) {
       if (chain.length >= 3) break;
       if (!chain.includes(fallback)) {

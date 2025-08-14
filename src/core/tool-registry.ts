@@ -37,15 +37,23 @@ export class ToolRegistry {
   }
 
   async listTools(): Promise<Tool[]> {
-    return Array.from(this.tools.values()).map((tool) => ({
-      name: tool.name,
-      description: tool.description,
-      inputSchema: {
-        type: "object" as const,
-        properties: (tool.inputSchema.properties || {}) as { [x: string]: unknown },
-        required: (tool.inputSchema.required || []) as string[],
-      },
-    }));
+    return Array.from(this.tools.values()).map((tool) => {
+      const result: Tool = {
+        name: tool.name,
+        description: tool.description,
+        inputSchema: {
+          type: "object" as const,
+          properties: (tool.inputSchema?.properties || {}) as { [x: string]: unknown },
+        },
+      };
+      
+      // Only add required if it exists and is an array
+      if (tool.inputSchema?.required && Array.isArray(tool.inputSchema.required)) {
+        (result.inputSchema as any).required = tool.inputSchema.required;
+      }
+      
+      return result;
+    });
   }
 
   async executeTool(name: string, args: any): Promise<any> {

@@ -170,7 +170,7 @@ export const enhancePrompt: ToolDefinition = {
       .default('auto')
       .describe('Enhancement strategy to use'),
     context: z.record(z.any()).optional().describe('Additional context for enhancement')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const { prompt, strategy, context } = args;
     
@@ -230,7 +230,7 @@ export const analyzePrompt: ToolDefinition = {
   inputSchema: z.object({
     prompt: z.string().describe('The prompt to analyze'),
     verbose: z.boolean().optional().default(false).describe('Include detailed analysis')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const { prompt, verbose } = args;
     const analysis = {
@@ -337,7 +337,7 @@ export const generatePromptTemplate: ToolDefinition = {
     ]).describe('Type of task the template is for'),
     customFields: z.array(z.string()).optional()
       .describe('Additional custom fields to include in template')
-  }).strict(),
+  }).strict() as any,
   handler: async (args) => {
     const { taskType, customFields = [] } = args;
     
@@ -490,7 +490,7 @@ export const generatePromptTemplate: ToolDefinition = {
     if (customFields.length > 0) {
       template.fields.push(...customFields);
       template.template += '\n\n**Additional Information**:\n' + 
-        customFields.map(field => `- ${field}: [${field}]`).join('\n');
+        customFields.map((field: any) => `- ${field}: [${field}]`).join('\n');
     }
     
     return {
@@ -499,7 +499,7 @@ export const generatePromptTemplate: ToolDefinition = {
       fields: template.fields,
       description: template.description,
       usage: `Replace the [FIELD_NAME] placeholders with your specific information`,
-      example: template.fields.slice(0, 3).reduce((acc, field) => {
+      example: template.fields.slice(0, 3).reduce((acc: any, field: any) => {
         acc[field] = `Example value for ${field}`;
         return acc;
       }, {} as Record<string, string>)
@@ -513,10 +513,10 @@ export const refinePrompt: ToolDefinition = {
   inputSchema: z.object({
     prompt: z.string().describe('The prompt to refine'),
     goal: z.string().describe('What you want to achieve with this prompt'),
-    iterations: z.number().optional().default(3).min(1).max(5)
+    iterations: z.number().min(1).max(5).optional().default(3)
       .describe('Number of refinement iterations'),
     model: z.string().optional().describe('AI model to use for refinement')
-  }).strict(),
+  }).strict() as any,
   handler: async (args, orchestrator?: AIOrchestrator) => {
     if (!orchestrator) {
       throw new Error('AI orchestrator required for prompt refinement');

@@ -5,7 +5,7 @@
  * large context window models like Google Gemini 2.5 Flash/Pro
  */
 
-import { FileCollector } from './file-collector';
+import { FileCollector } from './file-collector.js';
 import {
   LargeContextOptions,
   FileCollection,
@@ -14,8 +14,8 @@ import {
   LARGE_CONTEXT_MODELS,
   LargeContextModel,
   ContextChunk
-} from './types';
-import { callModel } from '../utils/model-caller';
+} from './types.js';
+import { callModel } from '../utils/model-caller.js';
 
 export class LargeContextAnalyzer {
   private fileCollector: FileCollector;
@@ -240,18 +240,18 @@ export class LargeContextAnalyzer {
     
     // Find models that can handle the context
     const capableModels = LARGE_CONTEXT_MODELS.filter(
-      m => m.contextWindow >= requiredContext * 1.2 // 20% buffer
+      (m: any) => m.contextWindow >= requiredContext * 1.2 // 20% buffer
     );
     
     if (capableModels.length === 0) {
       // Return model with largest context window
-      return LARGE_CONTEXT_MODELS.reduce((a, b) => 
+      return LARGE_CONTEXT_MODELS.reduce((a: any, b: any) => 
         a.contextWindow > b.contextWindow ? a : b
       );
     }
     
     // Sort by cost efficiency (context per dollar)
-    return capableModels.sort((a, b) => {
+    return capableModels.sort((a: any, b: any) => {
       const costA = a.costPer1kTokens.input + a.costPer1kTokens.output;
       const costB = b.costPer1kTokens.input + b.costPer1kTokens.output;
       return costA - costB;
@@ -279,7 +279,7 @@ export class LargeContextAnalyzer {
     }
     
     // Hierarchical for large collections with structure
-    if (collection.metadata?.directories.length > 10) {
+    if (collection.metadata?.directories && collection.metadata.directories.length > 10) {
       return 'hierarchical';
     }
     

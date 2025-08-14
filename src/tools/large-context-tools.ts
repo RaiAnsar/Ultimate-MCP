@@ -6,9 +6,9 @@
  */
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { FileCollector } from '../large-context/file-collector';
-import { LargeContextAnalyzer } from '../large-context/large-context-analyzer';
-import { DirectoryTree, ProjectSummary } from '../large-context/types';
+import { FileCollector } from '../large-context/file-collector.js';
+import { LargeContextAnalyzer } from '../large-context/large-context-analyzer.js';
+import { DirectoryTree, ProjectSummary } from '../large-context/types.js';
 
 const fileCollector = new FileCollector();
 const largeContextAnalyzer = new LargeContextAnalyzer();
@@ -95,7 +95,7 @@ Automatically selects the best model based on context size and cost.`,
     },
     required: ['rootDir', 'query']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     try {
       const result = await largeContextAnalyzer.collectAndAnalyze(
         {
@@ -180,7 +180,7 @@ Perfect for:
     },
     required: ['rootDir']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     try {
       const tree = await fileCollector.generateDirectoryTree(
         args.rootDir,
@@ -268,7 +268,7 @@ Supports various output formats and smart filtering.`,
     },
     required: ['rootDir', 'pattern']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     try {
       const collection = await fileCollector.collect({
         rootDir: args.rootDir,
@@ -344,7 +344,7 @@ Provides actionable insights for architecture decisions.`,
     },
     required: ['rootDir']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     try {
       // First, generate directory tree
       const tree = await fileCollector.generateDirectoryTree(
@@ -472,7 +472,7 @@ Uses large context models to understand semantic patterns, not just text matchin
     },
     required: ['rootDir', 'searchQuery']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     try {
       // Collect relevant files
       const collection = await fileCollector.collect({
@@ -562,7 +562,7 @@ Output in Markdown format ready for README or documentation sites.`,
     },
     required: ['rootDir']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     try {
       // Collect all relevant files
       const codeFiles = await fileCollector.collect({
@@ -641,7 +641,7 @@ Provides:
     },
     required: ['rootDir']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     try {
       // Collect files to estimate
       const collection = await fileCollector.collect({
@@ -661,7 +661,7 @@ Provides:
       };
       
       // Get model costs
-      const { LARGE_CONTEXT_MODELS } = await import('../large-context/types');
+      const { LARGE_CONTEXT_MODELS } = await import('../large-context/types.js');
       
       for (const modelName of args.models) {
         const model = LARGE_CONTEXT_MODELS.find(m => m.name === modelName);

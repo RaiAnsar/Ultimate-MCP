@@ -113,7 +113,7 @@ export class CodeAnalyzer {
           const node = path.node;
           const source = node.source.value;
           
-          node.specifiers.forEach(spec => {
+          node.specifiers.forEach((spec: any) => {
             if (t.isImportDefaultSpecifier(spec) || 
                 t.isImportSpecifier(spec) || 
                 t.isImportNamespaceSpecifier(spec)) {

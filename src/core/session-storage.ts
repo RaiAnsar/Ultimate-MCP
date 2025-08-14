@@ -1,8 +1,8 @@
 import fs from 'fs/promises';
 import path from 'path';
-import os from 'os';
 import crypto from 'crypto';
 import { Logger } from '../utils/logger.js';
+import { getHomeDir, joinPath, getPlatformInfo } from '../utils/platform-utils.js';
 import type { Message } from '../types/index.js';
 
 interface SessionData {
@@ -53,7 +53,7 @@ export class SessionStorage {
     
     // Determine session directory (similar to Claude Code's approach)
     const baseDir = process.env.MCP_SESSION_DIR || 
-                   path.join(os.homedir(), '.ultimate-mcp', 'sessions');
+                   joinPath(getHomeDir(), '.ultimate-mcp', 'sessions');
     
     this.sessionDir = baseDir;
     
@@ -96,7 +96,7 @@ export class SessionStorage {
       lastAccessed: new Date().toISOString(),
       conversations: [],
       metadata: {
-        platform: process.platform,
+        ...getPlatformInfo(),
         nodeVersion: process.version,
         mcpVersion: '2.0.0',
         startTime: Date.now()

@@ -52,7 +52,11 @@ export class ContentManager {
   
   // Space operations
   async createSpace(name: string, description?: string): Promise<ContentSpace> {
-    const space = await this.storage.createSpace({ name, description });
+    const space = await this.storage.createSpace({ 
+      name, 
+      description,
+      environments: []
+    });
     this.invalidateCache('spaces');
     return space;
   }
@@ -204,7 +208,7 @@ export class ContentManager {
     // Read file info
     const stats = await fs.stat(filePath);
     const fileName = path.basename(filePath);
-    const contentType = this.getContentType(fileName);
+    const contentType = this.getMimeType(fileName);
     
     const asset = await this.storage.createAsset(spaceId, {
       title,
@@ -435,7 +439,7 @@ export class ContentManager {
         const csv = [
           headers.join(','),
           ...exportData.map(entry => 
-            headers.map(h => JSON.stringify(entry[h] || '')).join(',')
+            headers.map(h => JSON.stringify((entry as any)[h] || '')).join(',')
           )
         ];
         return csv.join('\n');
@@ -590,7 +594,7 @@ export class ContentManager {
     }
   }
   
-  private getContentType(fileName: string): string {
+  private getMimeType(fileName: string): string {
     const ext = path.extname(fileName).toLowerCase();
     const contentTypes: Record<string, string> = {
       '.jpg': 'image/jpeg',

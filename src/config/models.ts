@@ -221,6 +221,16 @@ export const FALLBACK_MODELS = {
   "moonshotai/kimi-k2-1t": "moonshotai/kimi-k1",
 };
 
+// Model categories for classification
+export const MODEL_CATEGORIES = {
+  GENERAL: 'general',
+  CODING: 'coding',
+  VISION: 'vision',
+  REASONING: 'reasoning',
+  CREATIVE: 'creative',
+  ANALYSIS: 'analysis'
+};
+
 // Model pricing tiers (for cost optimization)
 export const MODEL_PRICING_TIERS = {
   premium: [

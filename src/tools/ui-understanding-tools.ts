@@ -6,9 +6,9 @@
  */
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { ScreenshotCapture } from '../ui-understanding/screenshot-capture';
-import { UIAnalyzer } from '../ui-understanding/ui-analyzer';
-import { UIComparisonResult, DesignGuidelineViolation, UIImprovementSuggestion } from '../ui-understanding/types';
+import { ScreenshotCapture } from '../ui-understanding/screenshot-capture.js';
+import { UIAnalyzer } from '../ui-understanding/ui-analyzer.js';
+import { UIComparisonResult, DesignGuidelineViolation, UIImprovementSuggestion } from '../ui-understanding/types.js';
 
 const screenshotCapture = new ScreenshotCapture();
 const uiAnalyzer = new UIAnalyzer();
@@ -71,7 +71,7 @@ The AI will proactively use this tool when:
     },
     required: ['url']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     try {
       // Capture screenshots
       const screenshots = await screenshotCapture.captureScreenshot({
@@ -185,7 +185,7 @@ Perfect for:
     },
     required: ['url']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     const screenshots = await screenshotCapture.captureScreenshot({
       url: args.url,
       fullPage: false
@@ -258,7 +258,7 @@ Returns detailed report with:
     },
     required: ['url']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     const screenshots = await screenshotCapture.captureScreenshot({
       url: args.url,
       fullPage: true
@@ -339,7 +339,7 @@ Useful for:
     },
     required: ['url1', 'url2']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     // Capture both UIs
     const [screenshots1, screenshots2] = await Promise.all([
       screenshotCapture.captureScreenshot({ url: args.url1 }),
@@ -428,7 +428,7 @@ Suggestions cover:
     },
     required: ['url']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     const screenshots = await screenshotCapture.captureScreenshot({
       url: args.url,
       fullPage: false
@@ -520,7 +520,7 @@ Great for:
     },
     required: ['url']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     const screenshots = await screenshotCapture.captureScreenshot({
       url: args.url,
       fullPage: true
@@ -553,7 +553,7 @@ Great for:
     };
     
     if (args.generateCode) {
-      componentReport.componentInventory.forEach(comp => {
+      componentReport.componentInventory.forEach((comp: any) => {
         comp.codeSnippet = generateComponentCode(comp);
       });
     }
@@ -609,7 +609,7 @@ Returns:
     },
     required: ['url', 'guidelines']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     const screenshots = await screenshotCapture.captureScreenshot({
       url: args.url
     });
@@ -701,7 +701,7 @@ Output formats:
     },
     required: ['url']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     const screenshots = await screenshotCapture.captureScreenshot({
       url: args.url,
       fullPage: true
@@ -773,7 +773,7 @@ Helps with:
     },
     required: ['url']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     const screenshots = await screenshotCapture.captureScreenshot({
       url: args.url
     });

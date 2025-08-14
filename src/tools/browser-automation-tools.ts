@@ -69,7 +69,7 @@ Use cases:
     },
     required: ['url']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     try {
       await browserManager.initialize({
         engine: args.engine,
@@ -171,7 +171,7 @@ Perfect for:
     },
     required: ['url', 'actions']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     try {
       await browserManager.initialize({
         engine: args.engine,
@@ -259,7 +259,7 @@ Use cases:
     },
     required: ['url', 'selectors']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     try {
       await browserManager.initialize({
         engine: args.engine,
@@ -327,7 +327,7 @@ Useful for:
     },
     required: ['url']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     try {
       await browserManager.initialize({
         headless: true,
@@ -419,7 +419,7 @@ Standards:
     },
     required: ['url']
   },
-  execute: async (args: any) => {
+  handler: async (args: any) => {
     try {
       await browserManager.initialize({ headless: true });
       const page = await browserManager.newPage();

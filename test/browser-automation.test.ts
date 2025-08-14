@@ -248,11 +248,8 @@ describe('BrowserManager', () => {
         viewport: { width: 1920, height: 1080 }
       });
       
-      const { chromium } = await import('playwright');
-      const browser = await chromium.launch();
-      const page = await browser.newPage();
-      
-      expect(mockPage.setViewportSize).toBeDefined();
+      expect(mockPage).toBeDefined();
+      expect(mockPage.setViewportSize).toHaveBeenCalledWith({ width: 1920, height: 1080 });
     });
   });
 
@@ -375,10 +372,13 @@ describe('BrowserManager', () => {
     it('should extract text content', async () => {
       // Setup mock evaluate override to return different values based on selector
       evaluateMockOverride = vi.fn().mockImplementation((fn, selector) => {
-        // Mock the extraction based on selector
-        if (selector === 'h1') return 'Page Title';
-        if (selector === '.price') return '$99.99';
-        if (selector === '.description') return 'Product description';
+        // Simulate the function execution - it passes a function and selector
+        if (typeof fn === 'function') {
+          // Mock the extraction based on selector
+          if (selector === 'h1') return 'Page Title';
+          if (selector === '.price') return '$99.99';
+          if (selector === '.description') return 'Product description';
+        }
         return null;
       });
       
@@ -541,9 +541,11 @@ describe('BrowserManager', () => {
 
     it('should handle automation errors gracefully', async () => {
       await browserManager.initialize();
-      const page = await browserManager.newPage();
       
-      mockPage.click.mockRejectedValueOnce(new Error('Element not found'));
+      // Set up the mock to reject before executing
+      if (mockPage) {
+        mockPage.click = vi.fn().mockRejectedValueOnce(new Error('Element not found'));
+      }
       
       // Should not throw, but handle gracefully
       const results = await browserManager.executeAutomation({

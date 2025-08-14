@@ -452,7 +452,7 @@ import { MCPClient } from 'ultimate-mcp-client';
 
 const mcp = new MCPClient();
 const result = await mcp.useTool(process.argv[2], JSON.parse(process.argv[3]));
-console.log(result);
+console.error(result);
 ```
 
 ---

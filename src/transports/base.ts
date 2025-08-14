@@ -69,16 +69,16 @@ export class StdioTransport extends BaseTransport {
     try {
       await this.server.connect(this.transport);
       this.running = true;
-      this.logger.info("STDIO transport started");
+      // No logging in stdio mode - it interferes with the protocol
     } catch (error) {
-      this.logger.error("Failed to start STDIO transport", error);
+      // No logging in stdio mode - it interferes with the protocol
       throw error;
     }
   }
 
   async stop(): Promise<void> {
     this.running = false;
-    this.logger.info("STDIO transport stopped");
+    // No logging in stdio mode - it interferes with the protocol
   }
 
   isRunning(): boolean {

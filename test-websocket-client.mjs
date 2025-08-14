@@ -6,18 +6,18 @@ import WebSocket from 'ws';
 const WS_URL = 'ws://localhost:3002/ws';
 let ws = null;
 
-console.log('🔌 WebSocket Client Test - Connecting to Ultimate MCP Server...\n');
+console.error('🔌 WebSocket Client Test - Connecting to Ultimate MCP Server...\n');
 
 // Create WebSocket connection
 ws = new WebSocket(WS_URL);
 
 // Connection opened
 ws.on('open', () => {
-  console.log('✅ Connected to WebSocket server');
+  console.error('✅ Connected to WebSocket server');
   
   // Test authentication if needed
   if (process.env.AUTH_API_KEY) {
-    console.log('🔐 Sending authentication...');
+    console.error('🔐 Sending authentication...');
     ws.send(JSON.stringify({
       type: 'auth',
       apiKey: process.env.AUTH_API_KEY
@@ -33,30 +33,30 @@ ws.on('open', () => {
 // Listen for messages
 ws.on('message', (data) => {
   const message = JSON.parse(data.toString());
-  console.log('📨 Received:', JSON.stringify(message, null, 2));
+  console.error('📨 Received:', JSON.stringify(message, null, 2));
   
   // Handle different message types
   switch (message.type) {
     case 'connected':
-      console.log(`📝 Client ID: ${message.clientId}`);
+      console.error(`📝 Client ID: ${message.clientId}`);
       // Start testing RPC calls
       testRPCCalls();
       break;
       
     case 'pong':
-      console.log('🏓 Pong received');
+      console.error('🏓 Pong received');
       break;
       
     case 'auth_success':
-      console.log('✅ Authentication successful');
+      console.error('✅ Authentication successful');
       break;
       
     case 'rpc_response':
-      console.log('📊 RPC Response:', message.payload);
+      console.error('📊 RPC Response:', message.payload);
       break;
       
     case 'broadcast':
-      console.log(`📢 Broadcast (${message.event}):`, message.data);
+      console.error(`📢 Broadcast (${message.event}):`, message.data);
       break;
       
     case 'error':
@@ -67,7 +67,7 @@ ws.on('message', (data) => {
 
 // Connection closed
 ws.on('close', (code, reason) => {
-  console.log(`❌ Connection closed: ${code} - ${reason}`);
+  console.error(`❌ Connection closed: ${code} - ${reason}`);
 });
 
 // Connection error
@@ -77,10 +77,10 @@ ws.on('error', (error) => {
 
 // Test RPC calls
 async function testRPCCalls() {
-  console.log('\n🧪 Testing RPC calls...\n');
+  console.error('\n🧪 Testing RPC calls...\n');
   
   // Test 1: List tools
-  console.log('1️⃣ Testing tools/list...');
+  console.error('1️⃣ Testing tools/list...');
   ws.send(JSON.stringify({
     type: 'rpc',
     payload: {
@@ -95,7 +95,7 @@ async function testRPCCalls() {
   await new Promise(resolve => setTimeout(resolve, 1000));
   
   // Test 2: Call a simple tool
-  console.log('\n2️⃣ Testing tools/call with ask tool...');
+  console.error('\n2️⃣ Testing tools/call with ask tool...');
   ws.send(JSON.stringify({
     type: 'rpc',
     payload: {
@@ -113,7 +113,7 @@ async function testRPCCalls() {
   }));
   
   // Test 3: Update context
-  console.log('\n3️⃣ Testing context update...');
+  console.error('\n3️⃣ Testing context update...');
   ws.send(JSON.stringify({
     type: 'context_update',
     context: {
@@ -126,7 +126,7 @@ async function testRPCCalls() {
   }));
   
   // Keep connection alive for 30 seconds
-  console.log('\n⏳ Keeping connection alive for 30 seconds...');
+  console.error('\n⏳ Keeping connection alive for 30 seconds...');
   
   // Send periodic pings
   const pingInterval = setInterval(() => {
@@ -137,7 +137,7 @@ async function testRPCCalls() {
   
   setTimeout(() => {
     clearInterval(pingInterval);
-    console.log('\n👋 Closing connection...');
+    console.error('\n👋 Closing connection...');
     ws.close();
     process.exit(0);
   }, 30000);
@@ -145,7 +145,7 @@ async function testRPCCalls() {
 
 // Handle process termination
 process.on('SIGINT', () => {
-  console.log('\n👋 Interrupted, closing connection...');
+  console.error('\n👋 Interrupted, closing connection...');
   if (ws) {
     ws.close();
   }

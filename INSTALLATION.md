@@ -1,268 +1,442 @@
-# Installation Guide
+# 📦 Ultimate MCP Server - Complete Installation Guide
 
-## Prerequisites
+## Table of Contents
+- [Quick Start](#quick-start)
+- [Claude Desktop](#claude-desktop)
+- [Claude Code](#claude-code)
+- [Cursor](#cursor)
+- [VS Code (Continue)](#vs-code-continue)
+- [Windsurf](#windsurf)
+- [Cline](#cline)
+- [Google AI Studio](#google-ai-studio)
+- [Other Platforms](#other-platforms)
+- [Troubleshooting](#troubleshooting)
 
-- Node.js 18+ 
-- npm or yarn
-- At least one AI provider API key (OpenRouter, Anthropic, OpenAI, or Google)
+---
 
 ## Quick Start
 
-### 1. Clone the Repository
+The fastest way to get started with any MCP-compatible client:
 
 ```bash
-git clone https://github.com/yourusername/ultimate-mcp-server.git
-cd ultimate-mcp-server
+npx ultimate-mcp-server
 ```
 
-### 2. Install Dependencies
+This will start the server in stdio mode, ready for MCP client connections.
 
+---
+
+## Claude Desktop
+
+### Method 1: Automatic Setup (Recommended)
 ```bash
-npm install
+npx @claude/create-mcp-server
 ```
+Select "ultimate-mcp-server" when prompted.
 
-### 3. Configure Environment
+### Method 2: GUI Installation
+1. Open Claude Desktop
+2. Click the settings icon (⚙️) in the bottom-left
+3. Navigate to "Developer" → "Model Context Protocol"
+4. Click "Add Server"
+5. Fill in:
+   - **Name**: `ultimate`
+   - **Command**: `npx`
+   - **Arguments**: `ultimate-mcp-server`
+6. Add environment variables (optional):
+   - Click "Add Environment Variable"
+   - Add `OPENROUTER_API_KEY` and your key
 
-Copy the example environment file:
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your API keys:
-
-```env
-# At least one AI provider key is required
-OPENROUTER_API_KEY=your_openrouter_key
-ANTHROPIC_API_KEY=your_anthropic_key
-OPENAI_API_KEY=your_openai_key
-GOOGLE_API_KEY=your_google_key
-
-# Optional: For persistence features
-DATABASE_URL=postgresql://user:pass@localhost:5432/ultimate_mcp
-REDIS_URL=redis://localhost:6379
-
-# Optional: Logging level
-LOG_LEVEL=info
-```
-
-### 4. Build the Server
-
-```bash
-npm run build
-```
-
-### 5. Test the Installation
-
-Run the test script to verify everything is working:
-
-```bash
-node test-server.js
-```
-
-## Claude Desktop Integration
-
-### 1. Locate Claude Configuration
-
-- **macOS**: `~/Library/Application Support/Claude/claude.json`
-- **Windows**: `%APPDATA%\Claude\claude.json`
-- **Linux**: `~/.config/claude/claude.json`
-
-### 2. Add Server Configuration
-
-Edit your `claude.json` file:
+### Method 3: Manual Configuration
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
 ```json
 {
   "mcpServers": {
     "ultimate": {
-      "command": "node",
-      "args": ["/absolute/path/to/ultimate-mcp-server/dist/index.js"],
+      "command": "npx",
+      "args": ["ultimate-mcp-server"],
       "env": {
-        "OPENROUTER_API_KEY": "your-key-here",
-        "LOG_LEVEL": "info"
+        "OPENROUTER_API_KEY": "sk-or-...",
+        "ANTHROPIC_API_KEY": "sk-ant-..."
       }
     }
   }
 }
 ```
 
-### 3. Restart Claude Desktop
+### Verification
+After setup, restart Claude Desktop. You should see "MCP" indicator in the chat interface.
 
-After saving the configuration, restart Claude Desktop to load the server.
+---
 
-## Claude Code Integration
+## Claude Code
 
-Add to your Claude Code settings:
+### Installation Commands
 
+#### Basic Installation
 ```bash
-claude code --set-mcp-server ultimate "node /path/to/ultimate-mcp-server/dist/index.js"
+claude mcp add ultimate npx ultimate-mcp-server
 ```
 
-## Docker Installation (Optional)
-
-### 1. Build Docker Image
-
+#### With API Keys
 ```bash
-docker build -t ultimate-mcp-server .
+claude mcp add ultimate npx ultimate-mcp-server \
+  -e OPENROUTER_API_KEY=your-key \
+  -e ANTHROPIC_API_KEY=your-key \
+  -e GOOGLE_API_KEY=your-key
 ```
 
-### 2. Run with Docker
-
+#### Local Development Setup
 ```bash
-docker run -e OPENROUTER_API_KEY=your-key ultimate-mcp-server
+# Clone and build
+git clone https://github.com/RaiAnsar/ultimate-mcp-server.git
+cd ultimate-mcp-server
+npm install && npm run build
+
+# Add local version
+claude mcp add ultimate node ./dist/index.js
 ```
 
-## Development Setup
-
-### 1. Install Dev Dependencies
-
+#### Project-Specific Setup
 ```bash
-npm install --save-dev
+# Add to current project only
+claude mcp add ultimate npx ultimate-mcp-server -s local
+
+# Add globally (all projects)
+claude mcp add ultimate npx ultimate-mcp-server -s user
 ```
 
-### 2. Run in Development Mode
-
+### Management Commands
 ```bash
-npm run dev
+# List all MCP servers
+claude mcp list
+
+# Check connection status
+claude mcp status ultimate
+
+# Remove server
+claude mcp remove ultimate
+
+# Update server
+claude mcp update ultimate
 ```
 
-### 3. Run Tests
+### Using in Claude Code
+Once installed, use the `/mcp` command in Claude Code to reconnect if needed.
 
-```bash
-npm test
-```
+---
 
-### 4. Lint Code
+## Cursor
 
-```bash
-npm run lint
-```
+### Method 1: Settings UI
+1. Open Cursor
+2. Press `Cmd/Ctrl + ,` to open Settings
+3. Search for "MCP" or navigate to Features → MCP
+4. Click "Add MCP Server"
+5. Enter configuration:
+   ```json
+   {
+     "name": "ultimate",
+     "command": "npx",
+     "args": ["ultimate-mcp-server"],
+     "env": {
+       "OPENROUTER_API_KEY": "your-key"
+     }
+   }
+   ```
+6. Click "Save" and restart Cursor
 
-## Optional Components
-
-### PostgreSQL Setup
-
-For conversation persistence:
-
-```bash
-# Install PostgreSQL
-brew install postgresql  # macOS
-sudo apt-get install postgresql  # Ubuntu
-
-# Create database
-createdb ultimate_mcp
-
-# Run migrations
-npm run migrate
-```
-
-### Redis Setup
-
-For fast caching:
-
-```bash
-# Install Redis
-brew install redis  # macOS
-sudo apt-get install redis-server  # Ubuntu
-
-# Start Redis
-redis-server
-```
-
-## Troubleshooting
-
-### Server Won't Start
-
-1. Check Node.js version: `node --version` (must be 18+)
-2. Verify build completed: `ls dist/index.js`
-3. Check environment variables: `cat .env`
-
-### Connection Issues
-
-1. Verify API keys are valid
-2. Check network connectivity
-3. Review logs: `LOG_LEVEL=debug node dist/index.js`
-
-### Claude Can't Find Server
-
-1. Use absolute paths in configuration
-2. Ensure file has execute permissions: `chmod +x dist/index.js`
-3. Check Claude logs for errors
-
-### Performance Issues
-
-1. Enable Redis caching
-2. Adjust rate limits in configuration
-3. Use fewer parallel AI calls
-
-## Configuration Options
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `OPENROUTER_API_KEY` | OpenRouter API key | - |
-| `ANTHROPIC_API_KEY` | Anthropic API key | - |
-| `OPENAI_API_KEY` | OpenAI API key | - |
-| `GOOGLE_API_KEY` | Google API key | - |
-| `DATABASE_URL` | PostgreSQL connection | - |
-| `REDIS_URL` | Redis connection | - |
-| `LOG_LEVEL` | Logging level | info |
-| `PORT` | Server port | 3000 |
-| `NODE_ENV` | Environment | production |
-| `RATE_LIMIT_WINDOW` | Rate limit window (seconds) | 60 |
-| `RATE_LIMIT_MAX_REQUESTS` | Max requests per window | 100 |
-
-### Advanced Configuration
-
-Create a `config.json` for advanced settings:
+### Method 2: Configuration File
+Edit `~/.cursor/config/settings.json`:
 
 ```json
 {
-  "orchestration": {
-    "defaultStrategy": "parallel",
-    "maxConcurrency": 5,
-    "timeout": 30000
-  },
-  "cache": {
-    "ttl": 3600,
-    "maxSize": 1000
-  },
-  "providers": {
-    "openrouter": {
-      "defaultModel": "anthropic/claude-3-opus"
+  "mcp": {
+    "enabled": true,
+    "servers": {
+      "ultimate": {
+        "command": "npx",
+        "args": ["ultimate-mcp-server"],
+        "env": {
+          "OPENROUTER_API_KEY": "sk-or-...",
+          "ANTHROPIC_API_KEY": "sk-ant-..."
+        }
+      }
     }
   }
 }
 ```
 
-## Updating
+### Method 3: Cursor Config Directory
+Create `~/.cursor/mcp/ultimate.json`:
 
-### 1. Pull Latest Changes
-
-```bash
-git pull origin main
+```json
+{
+  "command": "npx",
+  "args": ["ultimate-mcp-server"],
+  "env": {
+    "OPENROUTER_API_KEY": "your-key"
+  }
+}
 ```
 
-### 2. Update Dependencies
+---
 
-```bash
-npm update
+## VS Code (Continue)
+
+### Prerequisites
+1. Install Continue extension from VS Code Marketplace
+2. Restart VS Code after installation
+
+### Configuration
+
+#### Method 1: Continue UI
+1. Click Continue icon in sidebar
+2. Click settings (⚙️) icon
+3. Select "Configure MCP Servers"
+4. Add configuration
+
+#### Method 2: settings.json
+Edit Continue's `config.json`:
+- **macOS/Linux**: `~/.continue/config.json`
+- **Windows**: `%USERPROFILE%\.continue\config.json`
+
+```json
+{
+  "models": [
+    // Your existing models
+  ],
+  "mcpServers": {
+    "ultimate": {
+      "command": "npx",
+      "args": ["ultimate-mcp-server"],
+      "env": {
+        "OPENROUTER_API_KEY": "your-key"
+      }
+    }
+  }
+}
 ```
 
-### 3. Rebuild
-
-```bash
-npm run build
+#### Method 3: VS Code Settings
+Add to VS Code's `settings.json`:
+```json
+{
+  "continue.mcpServers": {
+    "ultimate": {
+      "command": "npx",
+      "args": ["ultimate-mcp-server"],
+      "env": {
+        "OPENROUTER_API_KEY": "your-key"
+      }
+    }
+  }
+}
 ```
 
-### 4. Restart Server
+---
 
-Restart Claude Desktop or your MCP client to use the updated server.
+## Windsurf
 
-## Support
+### Installation Steps
+1. Open Windsurf IDE
+2. Navigate to Settings (`Cmd/Ctrl + ,`)
+3. Go to "AI" → "MCP Servers"
+4. Click "Add Server"
+5. Configure:
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/ultimate-mcp-server/issues)
-- **Documentation**: See [README.md](README.md) and [FEATURES.md](FEATURES.md)
-- **Examples**: Check the `examples/` directory
+```yaml
+name: ultimate
+command: npx
+args:
+  - ultimate-mcp-server
+env:
+  OPENROUTER_API_KEY: your-key
+  ANTHROPIC_API_KEY: your-key
+transport: stdio
+```
+
+6. Save and restart Windsurf
+
+### Alternative: Config File
+Edit `~/.windsurf/mcp.yaml`:
+
+```yaml
+servers:
+  ultimate:
+    command: npx
+    args:
+      - ultimate-mcp-server
+    env:
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+    transport: stdio
+```
+
+---
+
+## Cline
+
+### Installation
+Edit `~/.cline/config.json`:
+
+```json
+{
+  "mcpServers": {
+    "ultimate": {
+      "command": "npx",
+      "args": ["ultimate-mcp-server"],
+      "env": {
+        "OPENROUTER_API_KEY": "your-key"
+      }
+    }
+  }
+}
+```
+
+Or use Cline's CLI:
+```bash
+cline mcp add ultimate "npx ultimate-mcp-server"
+```
+
+---
+
+## Google AI Studio
+
+### Setup Process
+1. Open [Google AI Studio](https://aistudio.google.com)
+2. Click Settings (⚙️)
+3. Navigate to "Extensions" → "MCP"
+4. Enable "Model Context Protocol"
+5. Add server configuration:
+
+```json
+{
+  "servers": {
+    "ultimate": {
+      "command": "npx",
+      "args": ["ultimate-mcp-server"],
+      "transport": "stdio",
+      "env": {
+        "GOOGLE_API_KEY": "${GOOGLE_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+---
+
+## Other Platforms
+
+### Zed
+Edit `~/.config/zed/settings.json`:
+```json
+{
+  "assistant": {
+    "mcp_servers": {
+      "ultimate": {
+        "command": "npx",
+        "args": ["ultimate-mcp-server"]
+      }
+    }
+  }
+}
+```
+
+### Smithery
+Add to `.smithery/config.json`:
+```json
+{
+  "mcp": {
+    "ultimate": {
+      "command": "npx",
+      "args": ["ultimate-mcp-server"]
+    }
+  }
+}
+```
+
+### Visual Studio 2022
+1. Install MCP extension from Visual Studio Marketplace
+2. Go to Tools → Options → MCP
+3. Add server configuration
+
+### BoltAI
+1. Open BoltAI preferences
+2. Navigate to "Assistants" → "MCP"
+3. Add ultimate-mcp-server
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+#### Server not connecting
+```bash
+# Check if npx works
+npx --version
+
+# Test server directly
+npx ultimate-mcp-server
+
+# Check for errors
+npm list -g ultimate-mcp-server
+```
+
+#### Permission errors
+```bash
+# macOS/Linux
+chmod +x $(which npx)
+
+# Install globally instead
+npm install -g ultimate-mcp-server
+# Then use "ultimate-mcp-server" as command instead of "npx ultimate-mcp-server"
+```
+
+#### API key issues
+```bash
+# Test with environment variable
+export OPENROUTER_API_KEY="your-key"
+npx ultimate-mcp-server
+
+# Or create .env file
+echo "OPENROUTER_API_KEY=your-key" > .env
+```
+
+#### Version conflicts
+```bash
+# Clear npm cache
+npm cache clean --force
+
+# Update to latest
+npm update -g ultimate-mcp-server
+
+# Or reinstall
+npm uninstall -g ultimate-mcp-server
+npm install -g ultimate-mcp-server@latest
+```
+
+### Debug Mode
+
+Enable debug logging:
+```bash
+DEBUG=* npx ultimate-mcp-server
+```
+
+Or in configuration:
+```json
+{
+  "env": {
+    "DEBUG": "*",
+    "LOG_LEVEL": "debug"
+  }
+}
+```
+
+### Support
+
+- **GitHub Issues**: [Report bugs](https://github.com/RaiAnsar/ultimate-mcp-server/issues)
+- **Discussions**: [Ask questions](https://github.com/RaiAnsar/ultimate-mcp-server/discussions)
+- **Wiki**: [Documentation](https://github.com/RaiAnsar/ultimate-mcp-server/wiki)

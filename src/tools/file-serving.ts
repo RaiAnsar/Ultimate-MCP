@@ -206,7 +206,7 @@ export async function createFilePackage(input: {
 }) {
   try {
     const { paths, includeMetadata = true } = input;
-    const package: any = {
+    const packageData: any = {
       version: '1.0',
       created: new Date().toISOString(),
       files: []
@@ -236,7 +236,7 @@ export async function createFilePackage(input: {
               };
             }
             
-            package.files.push(fileData);
+            packageData.files.push(fileData);
           }
         }
       } catch (error) {
@@ -246,9 +246,9 @@ export async function createFilePackage(input: {
     
     return {
       success: true,
-      package,
-      fileCount: package.files.length,
-      totalSize: package.files.reduce((sum: number, f: any) => 
+      package: packageData,
+      fileCount: packageData.files.length,
+      totalSize: packageData.files.reduce((sum: number, f: any) => 
         sum + (f.metadata?.size || 0), 0)
     };
   } catch (error) {

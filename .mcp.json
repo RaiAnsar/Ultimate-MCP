@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "ultimate-mcp": {
+      "command": "npx",
+      "args": ["ultimate-mcp-server"],
+      "env": {
+        "OPENROUTER_API_KEY": "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"
+      }
+    }
+  }
+}
