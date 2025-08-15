@@ -57,6 +57,7 @@ claude-config-ready.json
 .env.*
 !.env.example
 *.key
+.mcp.json
 
 # Local test files
 test-server.js
