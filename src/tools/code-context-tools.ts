@@ -293,8 +293,15 @@ export const buildSmartContext: ToolDefinition = {
   name: 'build_smart_context',
   description: 'Build an intelligent context window for a specific task or query',
   inputSchema: z.object({
-    task: z.string().describe('Task description or query'),
-    basePath: z.string().describe('Base path to search from'),
+    // Support both parameter formats
+    task: z.string().optional().describe('Task description or query'),
+    query: z.string().optional().describe('Task description or query (alternative to task)'),
+    basePath: z.string().optional().describe('Base path to search from'),
+    paths: z.union([
+      z.array(z.string()),
+      z.string()
+    ]).optional().describe('Paths to search from (alternative to basePath)'),
+    maxTokens: z.number().optional().describe('Maximum tokens (alternative to options.maxTokens)'),
     options: z.object({
       maxTokens: z.number().optional().default(12000),
       strategy: z.enum(['comprehensive', 'focused', 'minimal'])
@@ -302,10 +309,39 @@ export const buildSmartContext: ToolDefinition = {
       fileTypes: z.array(z.string()).optional()
         .describe('File extensions to include (e.g., [".ts", ".js"])')
     }).optional()
-  }).strict() as any,
+  }).refine(
+    (data) => (data.task || data.query) && (data.basePath || data.paths),
+    {
+      message: "Either 'task' or 'query' and either 'basePath' or 'paths' must be provided"
+    }
+  ) as any,
   handler: async (args) => {
     const manager = getContextManager();
-    const { task, basePath, options = {} } = args;
+    
+    // Normalize parameters to support both formats
+    const task = args.task || args.query;
+    let basePath = args.basePath;
+    
+    // Handle paths array
+    if (!basePath && args.paths) {
+      if (Array.isArray(args.paths)) {
+        basePath = args.paths[0]; // Use first path as base
+      } else if (typeof args.paths === 'string') {
+        // Handle string that might be JSON
+        try {
+          const parsed = JSON.parse(args.paths);
+          basePath = Array.isArray(parsed) ? parsed[0] : args.paths;
+        } catch {
+          basePath = args.paths;
+        }
+      }
+    }
+    
+    // Merge maxTokens from both possible locations
+    const options = {
+      ...args.options,
+      maxTokens: args.maxTokens || args.options?.maxTokens || 12000
+    };
     
     // Determine extraction options based on strategy
     const extractionOptions = {

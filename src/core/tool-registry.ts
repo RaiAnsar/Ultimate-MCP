@@ -43,17 +43,71 @@ export class ToolRegistry {
         description: tool.description,
         inputSchema: {
           type: "object" as const,
-          properties: (tool.inputSchema?.properties || {}) as { [x: string]: unknown },
+          properties: {} as { [x: string]: unknown },
         },
       };
       
-      // Only add required if it exists and is an array
-      if (tool.inputSchema?.required && Array.isArray(tool.inputSchema.required)) {
-        (result.inputSchema as any).required = tool.inputSchema.required;
+      // Handle Zod schemas
+      if (tool.inputSchema) {
+        // Check if it's a Zod schema (has shape property)
+        if ('shape' in tool.inputSchema && tool.inputSchema.shape) {
+          const shape = tool.inputSchema.shape as any;
+          const properties: any = {};
+          const required: string[] = [];
+          
+          for (const [key, value] of Object.entries(shape)) {
+            // Convert Zod types to JSON Schema
+            const zodType = value as any;
+            properties[key] = {
+              type: this.getJsonSchemaType(zodType),
+              description: zodType._def?.description
+            };
+            
+            // Check if field is required (not optional)
+            if (!zodType.isOptional || !zodType.isOptional()) {
+              required.push(key);
+            }
+          }
+          
+          result.inputSchema.properties = properties;
+          if (required.length > 0) {
+            (result.inputSchema as any).required = required;
+          }
+        } else {
+          // Fallback to direct properties assignment
+          result.inputSchema.properties = (tool.inputSchema.properties || {}) as { [x: string]: unknown };
+          
+          // Only add required if it exists and is an array
+          if (tool.inputSchema.required && Array.isArray(tool.inputSchema.required)) {
+            (result.inputSchema as any).required = tool.inputSchema.required;
+          }
+        }
       }
       
       return result;
     });
+  }
+  
+  private getJsonSchemaType(zodType: any): string {
+    if (!zodType._def) return 'string';
+    
+    const typeName = zodType._def.typeName;
+    switch (typeName) {
+      case 'ZodString':
+        return 'string';
+      case 'ZodNumber':
+        return 'number';
+      case 'ZodBoolean':
+        return 'boolean';
+      case 'ZodArray':
+        return 'array';
+      case 'ZodObject':
+        return 'object';
+      case 'ZodOptional':
+        return this.getJsonSchemaType(zodType._def.innerType);
+      default:
+        return 'string';
+    }
   }
 
   async executeTool(name: string, args: any): Promise<any> {
@@ -86,24 +140,38 @@ export class ToolRegistry {
   }
 
   private validateArgs(args: any, schema: Record<string, unknown>): void {
-    // Basic validation - can be enhanced with proper JSON Schema validation
-    const required = (schema.required || []) as string[];
-    const properties = (schema.properties || {}) as Record<string, any>;
-
-    for (const key of required) {
-      if (!(key in args)) {
-        throw new Error(`Missing required argument: ${key}`);
+    // Handle Zod schemas
+    if ('shape' in schema && schema.shape) {
+      // For Zod schemas, use the parse method if available
+      if ('parse' in schema && typeof schema.parse === 'function') {
+        try {
+          schema.parse(args);
+          return;
+        } catch (error: any) {
+          throw new Error(`Validation failed: ${error.message}`);
+        }
       }
-    }
-
-    // Type validation for known properties
-    for (const [key, value] of Object.entries(args)) {
-      if (properties[key]) {
-        const expectedType = properties[key].type;
-        const actualType = Array.isArray(value) ? 'array' : typeof value;
-        
-        if (expectedType && actualType !== expectedType) {
-          throw new Error(`Invalid type for ${key}: expected ${expectedType}, got ${actualType}`);
+      
+      // Fallback to manual validation for Zod schemas
+      const shape = schema.shape as any;
+      for (const [key, value] of Object.entries(shape)) {
+        const zodType = value as any;
+        if (!zodType.isOptional || !zodType.isOptional()) {
+          if (!(key in args)) {
+            throw new Error(`Missing required argument: ${key}`);
+          }
+        }
+      }
+    } else {
+      // Basic validation for non-Zod schemas
+      const required = (schema.required || []) as string[];
+      if (!Array.isArray(required)) {
+        return; // Skip validation if required is not an array
+      }
+      
+      for (const key of required) {
+        if (!(key in args)) {
+          throw new Error(`Missing required argument: ${key}`);
         }
       }
     }
