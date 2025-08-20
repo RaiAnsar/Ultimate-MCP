@@ -12,6 +12,7 @@ import { contentManagementTools } from "./content-management-tools.js";
 import { autonomousExplorationTools } from "./autonomous-exploration-tools.js";
 import { uiUnderstandingTools } from "./ui-understanding-tools.js";
 import { largeContextTools } from "./large-context-tools.js";
+import { websiteScraperTools } from "./website-scraper-tools.js";
 // import * as aiTools from "./ai-tools.js";
 // import * as codeTools from "./code-tools.js";
 // import * as systemTools from "./system-tools.js";
@@ -149,6 +150,11 @@ export async function registerBuiltInTools(
   
   // Register large context analysis tools
   for (const tool of largeContextTools) {
+    server.registerTool(tool);
+  }
+  
+  // Register website scraper tools
+  for (const tool of websiteScraperTools) {
     server.registerTool(tool);
   }
 }
